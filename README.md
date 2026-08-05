@@ -37,7 +37,7 @@ ln -s "$PWD/solo-sdlc/skills/sdlc" ~/.claude/skills/sdlc
 ln -s "$PWD"/solo-sdlc/agents/*.md ~/.claude/agents/
 ```
 
-Two caveats on the non-Claude paths, both untested by me: the `commands/` directory may not surface as slash commands outside Claude Code, and `qa-breaker`'s `model: sonnet` may be ignored — in which case it simply runs on your session model. The skill auto-triggers either way.
+Verified with `apm install --target cursor`: all 11 primitives land, the skill at `.agents/skills/sdlc/`, the five agents at `.cursor/agents/`, the five commands at `.cursor/commands/`. What I have *not* verified is whether each harness then surfaces those commands in its own `/` menu, or whether `qa-breaker`'s `model: sonnet` is honored outside Claude Code — worst case it runs on your session model, which is harmless. The skill auto-triggers either way.
 
 ## Use it
 

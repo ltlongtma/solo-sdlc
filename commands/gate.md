@@ -1,5 +1,5 @@
 ---
-description: Phase 6 only — run the QA/review gate: tech-lead review, break-it QA, and security review in parallel.
+description: "Phase 6 only — run the QA/review gate: tech-lead review, break-it QA, and security review in parallel."
 ---
 
 Run **only phase 6 (QA / Review)** of the `sdlc` skill on the current branch or PR.
