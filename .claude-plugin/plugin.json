@@ -1,0 +1,22 @@
+{
+  "name": "solo-sdlc",
+  "description": "A gated 9-phase SDLC for a solo founder shipping with AI: idea → validate → spec → architecture → plan → execute → QA → release → retro. Ships one pipeline skill plus five adversarial review agents.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Long Luu"
+  },
+  "homepage": "https://github.com/ltlongtma/solo-sdlc",
+  "repository": "https://github.com/ltlongtma/solo-sdlc",
+  "license": "MIT",
+  "keywords": [
+    "sdlc",
+    "solo-founder",
+    "startup",
+    "spec-driven-development",
+    "code-review",
+    "qa",
+    "security-review",
+    "architecture",
+    "workflow"
+  ]
+}

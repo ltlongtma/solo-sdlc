@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>solo-sdlc — 9-phase workflow</title>
+<script>
+  (function () {
+    const saved = localStorage.getItem('theme');
+    const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.classList.toggle('dark', dark);
+  })();
+</script>
+<style>
+  :root {
+    --bg: #FAF9F5; --surface: #FFFFFF; --surface2: #F0EEE6;
+    --ink: #141413; --body: #3D3D3A; --muted: #87867F;
+    --line: #D1CFC5; --line-soft: #E6E3DA;
+    --clay: #D97757; --clay-soft: rgba(217,119,87,0.10);
+    --olive: #788C5D; --olive-soft: rgba(120,140,93,0.12);
+    --gold: #C9A45C; --gold-soft: rgba(201,164,92,0.14);
+    --blue: #5B7E96;
+    --zone: rgba(20,20,19,0.025); --zone-line: #D1CFC5;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html.dark {
+    --bg: #141413; --surface: #1F1F1D; --surface2: #2A2A28;
+    --ink: #FAF9F5; --body: #D1CFC5; --muted: #87867F;
+    --line: #3D3D3A; --line-soft: #2A2A28;
+    --clay: #E48A6E; --clay-soft: rgba(228,138,110,0.14);
+    --olive: #9DB07C; --olive-soft: rgba(157,176,124,0.16);
+    --gold: #D4B36F; --gold-soft: rgba(212,179,111,0.16);
+    --blue: #7FA3BC;
+    --zone: rgba(250,249,245,0.03); --zone-line: #3D3D3A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--body); font-family: var(--sans);
+    -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .bar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 20px; border-bottom: 1px solid var(--line-soft); flex: none;
+  }
+  .bar h1 { font-family: var(--serif); font-weight: 500; font-size: 19px; color: var(--ink); letter-spacing: -0.01em; }
+  .bar .sub { font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .spacer { flex: 1; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+    padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px;
+    background: transparent; color: var(--muted); cursor: pointer; transition: all .15s ease;
+  }
+  .chip:hover { color: var(--ink); border-color: var(--muted); }
+  .chip.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  #themeToggle {
+    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: transparent; color: var(--muted); cursor: pointer;
+  }
+  #themeToggle:hover { color: var(--ink); border-color: var(--muted); }
+
+  .stage { flex: 1; position: relative; min-height: 0; }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  .stage svg.panning { cursor: grabbing; }
+
+  .zone rect { fill: var(--zone); stroke: var(--zone-line); stroke-width: 1; stroke-dasharray: 5 5; rx: 16; }
+  .zone .ztitle { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; fill: var(--muted); }
+  .zone .zsub { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); opacity: 0.75; }
+
+  .node { cursor: pointer; }
+  .node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; rx: 10; transition: stroke .15s ease; }
+  .node:hover rect { stroke: var(--muted); }
+  .node.sel rect { stroke: var(--clay) !important; stroke-width: 2; }
+  .node .t  { font-family: var(--sans); font-size: 14.5px; font-weight: 600; fill: var(--ink); pointer-events: none; }
+  .node .m  { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); pointer-events: none; }
+  .node .k  { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--clay); pointer-events: none; }
+  .node .ka { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--olive); pointer-events: none; }
+  .node.gate rect { fill: var(--clay-soft); stroke: var(--clay); }
+  .node.agent rect { fill: var(--olive-soft); stroke: var(--olive); }
+  .node.ceo rect { fill: var(--gold-soft); stroke: var(--gold); }
+  .node.opt rect { stroke-dasharray: 6 3; }
+
+  .edge { stroke: var(--muted); stroke-width: 1.6; fill: none; marker-end: url(#a-mut); transition: opacity .2s ease, stroke .2s ease; }
+  .edge.dash { stroke-dasharray: 5 4; }
+  .edge.spawn { stroke: var(--olive); marker-end: url(#a-oli); stroke-dasharray: 5 4; }
+  .edge.gateln { stroke: var(--gold); marker-end: none; stroke-dasharray: 2 4; stroke-width: 1.3; }
+  .edge.loop { stroke: var(--blue); stroke-width: 1.5; stroke-dasharray: 3 4; marker-end: url(#a-blue); opacity: 0.55; }
+  .elbl { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); transition: opacity .2s ease; }
+  .elbl.gl { fill: var(--gold); font-size: 10px; }
+  .elbl.lp { fill: var(--blue); font-size: 10px; }
+
+  .stage.flowing .edge { opacity: 0.10; }
+  .stage.flowing .elbl { opacity: 0.10; }
+  .stage.flowing .node { opacity: 0.25; }
+  .stage.flowing .zone { opacity: 0.45; }
+  .stage.flowing .edge.lit {
+    opacity: 1; stroke: var(--clay); marker-end: url(#a-clay);
+    stroke-dasharray: 7 5; animation: march 0.9s linear infinite;
+  }
+  .stage.flowing .edge.spawn.lit { stroke: var(--olive); marker-end: url(#a-oli); }
+  .stage.flowing .edge.loop.lit { stroke: var(--blue); marker-end: url(#a-blue); opacity: 1; }
+  .stage.flowing .elbl.lit { opacity: 1; fill: var(--clay); }
+  .stage.flowing .elbl.lp.lit { fill: var(--blue); opacity: 1; }
+  .stage.flowing .node.lit { opacity: 1; }
+  .stage.flowing .node.lit rect { stroke: var(--clay); }
+  .stage.flowing .node.agent.lit rect { stroke: var(--olive); }
+  @keyframes march { to { stroke-dashoffset: -12; } }
+  @media (prefers-reduced-motion: reduce) { .stage.flowing .edge.lit { animation: none; } }
+
+  .card {
+    position: absolute; max-width: 380px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 38px 14px 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  }
+  .card .x {
+    position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
+    border: 1px solid var(--line); border-radius: 6px; background: transparent;
+    color: var(--muted); font-size: 12px; line-height: 1; cursor: pointer;
+  }
+  .card .x:hover { color: var(--ink); border-color: var(--muted); }
+  #detail { right: 16px; bottom: 16px; width: 350px; }
+  #detail.hide { display: none; }
+  #detail h3 { font-family: var(--serif); font-weight: 500; font-size: 17px; color: var(--ink); margin-bottom: 2px; }
+  #detail .meta { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-bottom: 8px; }
+  #detail p { font-size: 12.5px; line-height: 1.55; }
+  #detail p code, #flowcap code { font-family: var(--mono); font-size: 11px; color: var(--clay); }
+  #flowcap { left: 16px; bottom: 16px; max-width: 470px; display: none; }
+  #flowcap.show { display: block; }
+  #flowcap .fname { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--clay); margin-bottom: 6px; }
+  #flowcap ol { margin-left: 18px; }
+  #flowcap li { font-size: 12.5px; line-height: 1.55; }
+
+  .zctl {
+    position: absolute; top: 12px; left: 16px; display: flex; gap: 6px; align-items: center;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+  }
+  .zctl button {
+    font-family: var(--mono); font-size: 12px; padding: 3px 9px;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+    color: var(--muted); cursor: pointer;
+  }
+  .zctl button:hover { color: var(--ink); border-color: var(--muted); }
+  .src { position: absolute; top: 14px; right: 16px; font-family: var(--mono); font-size: 10px; color: var(--muted); opacity: 0.8; }
+
+  @media (max-width: 880px) {
+    body { overflow: auto; }
+    .stage { min-height: 70vh; }
+    #detail { position: static; width: auto; margin: 10px 16px; }
+    #flowcap { position: static; margin: 0 16px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div>
+    <h1>solo-sdlc — one founder + AI</h1>
+    <div class="sub">9 phases · 5 agents · the human is the value gate</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="chips" id="chips">
+    <button class="chip on" data-flow="all">Everything</button>
+    <button class="chip" data-flow="newproduct">New product</button>
+    <button class="chip" data-flow="risky">High risk</button>
+    <button class="chip" data-flow="feature">Feature</button>
+    <button class="chip" data-flow="trivial">Trivial</button>
+    <button class="chip" data-flow="agents">Agent spawns</button>
+    <button class="chip" data-flow="loops">Loop-backs</button>
+  </div>
+  <button id="themeToggle">Theme</button>
+</div>
+
+<div class="stage" id="stage">
+<svg id="svg" viewBox="0 0 2110 960" preserveAspectRatio="xMidYMid meet" role="img" aria-label="solo-sdlc nine phase workflow diagram">
+<g id="svg-content">
+  <defs>
+    <marker id="a-mut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/>
+    </marker>
+    <marker id="a-clay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--clay)"/>
+    </marker>
+    <marker id="a-oli" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--olive)"/>
+    </marker>
+    <marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--blue)"/>
+    </marker>
+  </defs>
+
+  <!-- zones -->
+  <g class="zone">
+    <rect x="25" y="40" width="2060" height="120"/>
+    <text class="ztitle" x="45" y="68">The human — founder</text>
+    <text class="zsub" x="45" y="86">owns every gate · the AI stops at a gate and never walks through one alone</text>
+  </g>
+  <g class="zone">
+    <rect x="25" y="330" width="2060" height="270"/>
+    <text class="ztitle" x="45" y="358">Pipeline — every phase produces a committable artifact; nothing lives in the chat</text>
+  </g>
+  <g class="zone">
+    <rect x="25" y="680" width="2060" height="240"/>
+    <text class="ztitle" x="45" y="708">Agents — the AI spawns these itself, always fresh context</text>
+    <text class="zsub" x="45" y="726">the author never grades their own work · agents report only; the main session does the fixing</text>
+  </g>
+
+  <!-- founder -->
+  <g class="node ceo" data-k="ceo">
+    <rect x="150" y="92" width="1810" height="56"/>
+    <text class="t" x="175" y="115">Founder — you</text>
+    <text class="m" x="175" y="135">brainstorms the idea · decides value at every gate · owns the human-only work: accounts, billing, pricing, legal, go-live</text>
+  </g>
+
+  <!-- gate lines -->
+  <path class="edge gateln" id="g0" d="M130,140 L130,380"/>
+  <path class="edge gateln" id="g1" d="M330,140 L330,380"/>
+  <path class="edge gateln" id="g2" d="M530,140 L530,380"/>
+  <path class="edge gateln" id="g25" d="M730,140 L730,380"/>
+  <path class="edge gateln" id="g3" d="M930,140 L930,380"/>
+  <path class="edge gateln" id="g4" d="M1130,140 L1130,380"/>
+  <path class="edge gateln" id="g6" d="M1530,140 L1530,380"/>
+  <path class="edge gateln" id="g7" d="M1730,140 L1730,380"/>
+  <path class="edge gateln" id="g8" d="M1930,140 L1930,380"/>
+  <text class="elbl gl" x="118" y="250" transform="rotate(-90 118 250)" text-anchor="middle">which track?</text>
+  <text class="elbl gl" x="318" y="250" transform="rotate(-90 318 250)" text-anchor="middle">GO / NO-GO (gate)</text>
+  <text class="elbl gl" x="518" y="250" transform="rotate(-90 518 250)" text-anchor="middle">agree the spec</text>
+  <text class="elbl gl" x="718" y="250" transform="rotate(-90 718 250)" text-anchor="middle">answer Q&#8594;A</text>
+  <text class="elbl gl" x="918" y="250" transform="rotate(-90 918 250)" text-anchor="middle">pick the stack (gate)</text>
+  <text class="elbl gl" x="1118" y="250" transform="rotate(-90 1118 250)" text-anchor="middle">approve plan (gate)</text>
+  <text class="elbl gl" x="1518" y="250" transform="rotate(-90 1518 250)" text-anchor="middle">sign off</text>
+  <text class="elbl gl" x="1718" y="250" transform="rotate(-90 1718 250)" text-anchor="middle">ship it (gate)</text>
+  <text class="elbl gl" x="1918" y="250" transform="rotate(-90 1918 250)" text-anchor="middle">retro together</text>
+
+  <!-- forward chain -->
+  <path class="edge" id="e01"   d="M220,470 L240,470"/>
+  <path class="edge" id="e12"   d="M420,470 L440,470"/>
+  <path class="edge" id="e225"  d="M620,470 L640,470"/>
+  <path class="edge" id="e253"  d="M820,470 L840,470"/>
+  <path class="edge" id="e34"   d="M1020,470 L1040,470"/>
+  <path class="edge" id="e45"   d="M1220,470 L1240,470"/>
+  <path class="edge" id="e56"   d="M1420,470 L1440,470"/>
+  <path class="edge" id="e67"   d="M1620,470 L1640,470"/>
+  <path class="edge" id="e78"   d="M1820,470 L1840,470"/>
+  <!-- skips -->
+  <path class="edge dash" id="s02"  d="M130,390 C 130,345 530,345 530,390"/>
+  <path class="edge dash" id="s254" d="M730,390 C 730,345 1130,345 1130,390"/>
+  <path class="edge dash" id="s05"  d="M155,560 C 200,640 1200,650 1330,562"/>
+  <path class="edge dash" id="s57"  d="M1370,560 C 1440,630 1680,625 1735,562"/>
+  <text class="elbl" data-e="s02" x="330" y="340" text-anchor="middle">feature: skip Validate</text>
+  <text class="elbl" data-e="s254" x="930" y="340" text-anchor="middle">skip Architecture when nothing structural changes</text>
+  <text class="elbl" data-e="s05" x="750" y="668" text-anchor="middle">trivial: skip phases 1&#8211;4</text>
+  <text class="elbl" data-e="s57" x="1560" y="648" text-anchor="middle">PR &#8594; CI &#8594; merge</text>
+
+  <!-- loop-backs -->
+  <path class="edge loop" id="lp-a2"  d="M850,552 C 820,600 640,600 612,552"/>
+  <path class="edge loop" id="lp-ex4" d="M1258,552 C 1240,596 1225,596 1216,552"/>
+  <path class="edge loop" id="lp-qa5" d="M1458,552 C 1440,596 1420,596 1412,552"/>
+  <path class="edge loop" id="lp-cyc" d="M1930,552 C 1930,650 1600,655 130,655 C 100,655 128,600 130,554"/>
+  <text class="elbl lp" data-e="lp-a2"  x="731" y="600" text-anchor="middle">architecture breaks the spec &#8594; fix the spec (+ADR)</text>
+  <text class="elbl lp" data-e="lp-ex4" x="1237" y="612" text-anchor="middle">retry ceiling hit &#8594; bad plan</text>
+  <text class="elbl lp" data-e="lp-qa5" x="1435" y="628" text-anchor="middle">QA/review fails &#8594; fix</text>
+  <text class="elbl lp" data-e="lp-cyc" x="820" y="672" text-anchor="middle">retro &#8594; next idea · the new round starts at phase 0</text>
+
+  <!-- phases -->
+  <g class="node" data-k="p0">
+    <rect x="40" y="390" width="180" height="160"/>
+    <text class="k" x="55" y="412">phase 0</text>
+    <text class="t" x="55" y="434">Triage / Idea</text>
+    <text class="m" x="55" y="458">docs/backlog.md</text>
+    <text class="m" x="55" y="476">idea-level brainstorm</text>
+    <text class="m" x="55" y="492">(what, and for whom)</text>
+    <text class="m" x="55" y="516">gate: worth doing?</text>
+    <text class="m" x="55" y="532">pick 1 of 4 tracks</text>
+  </g>
+  <g class="node gate" data-k="p1">
+    <rect x="240" y="390" width="180" height="160"/>
+    <text class="k" x="255" y="412">phase 1 · new product</text>
+    <text class="t" x="255" y="434">Validate</text>
+    <text class="m" x="255" y="458">docs/business/</text>
+    <text class="m" x="255" y="474">&lt;idea&gt;-validation.md</text>
+    <text class="m" x="255" y="498">market · competitors</text>
+    <text class="m" x="255" y="514">unit econ · ROI · channel</text>
+    <text class="m" x="255" y="536">GATE: GO / NO-GO</text>
+  </g>
+  <g class="node" data-k="p2">
+    <rect x="440" y="390" width="180" height="160"/>
+    <text class="k" x="455" y="412">phase 2</text>
+    <text class="t" x="455" y="434">Spec</text>
+    <text class="m" x="455" y="458">docs/specs/*.md</text>
+    <text class="m" x="455" y="482">+ acceptance checklist</text>
+    <text class="m" x="455" y="498">(unit tests for prose)</text>
+    <text class="m" x="455" y="522">solution brainstorm</text>
+    <text class="m" x="455" y="538">WHAT, not yet HOW</text>
+  </g>
+  <g class="node" data-k="p25">
+    <rect x="640" y="390" width="180" height="160"/>
+    <text class="k" x="655" y="412">phase 2.5</text>
+    <text class="t" x="655" y="434">Clarify</text>
+    <text class="m" x="655" y="458">"Clarifications"</text>
+    <text class="m" x="655" y="474">section in the spec</text>
+    <text class="m" x="655" y="498">one question at a time,</text>
+    <text class="m" x="655" y="514">answers COMMITTED</text>
+    <text class="m" x="655" y="536">never left in chat</text>
+  </g>
+  <g class="node gate" data-k="p3">
+    <rect x="840" y="390" width="180" height="160"/>
+    <text class="k" x="855" y="412">phase 3 · architecture</text>
+    <text class="t" x="855" y="434">Architecture</text>
+    <text class="m" x="855" y="458">ADR docs/decisions/</text>
+    <text class="m" x="855" y="474">2&#8211;3 options + trade-offs</text>
+    <text class="m" x="855" y="498">then /html-diagram</text>
+    <text class="m" x="855" y="514">&#8594; architecture.html</text>
+    <text class="m" x="855" y="536">GATE: human picks stack</text>
+  </g>
+  <g class="node gate" data-k="p4">
+    <rect x="1040" y="390" width="180" height="160"/>
+    <text class="k" x="1055" y="412">phase 4</text>
+    <text class="t" x="1055" y="434">Plan</text>
+    <text class="m" x="1055" y="458">docs/plans/*.md</text>
+    <text class="m" x="1055" y="474">+ verified research</text>
+    <text class="m" x="1055" y="492">requirement&#8594;task matrix</text>
+    <text class="m" x="1055" y="510">small tasks + status log</text>
+    <text class="m" x="1055" y="536">GATE: human approves</text>
+  </g>
+  <g class="node" data-k="p5">
+    <rect x="1240" y="390" width="180" height="160"/>
+    <text class="k" x="1255" y="412">phase 5</text>
+    <text class="t" x="1255" y="434">Execute</text>
+    <text class="m" x="1255" y="458">branch feat/* / worktree</text>
+    <text class="m" x="1255" y="476">test red&#8594;green&#8594;commit</text>
+    <text class="m" x="1255" y="494">&#8594; tick task status</text>
+    <text class="m" x="1255" y="518">ceiling: 3 same-failure</text>
+    <text class="m" x="1255" y="534">/ 5 per task &#8594; revert</text>
+  </g>
+  <g class="node" data-k="p6">
+    <rect x="1440" y="390" width="180" height="160"/>
+    <text class="k" x="1455" y="412">phase 6</text>
+    <text class="t" x="1455" y="434">QA / Review</text>
+    <text class="m" x="1455" y="458">PR + review notes</text>
+    <text class="m" x="1455" y="474">+ ADR if it diverges</text>
+    <text class="m" x="1455" y="498">CI green · checklist pass</text>
+    <text class="m" x="1455" y="514">0 CRITICAL/HIGH</text>
+    <text class="m" x="1455" y="536">human signs off</text>
+  </g>
+  <g class="node gate" data-k="p7">
+    <rect x="1640" y="390" width="180" height="160"/>
+    <text class="k" x="1655" y="412">phase 7</text>
+    <text class="t" x="1655" y="434">Release</text>
+    <text class="m" x="1655" y="458">merge + tag + releases/</text>
+    <text class="m" x="1655" y="474">+ docs/runbook.md</text>
+    <text class="m" x="1655" y="498">smoke · rollback plan</text>
+    <text class="m" x="1655" y="514">diagram current · GTM</text>
+    <text class="m" x="1655" y="536">GATE: human ships</text>
+  </g>
+  <g class="node" data-k="p8">
+    <rect x="1840" y="390" width="180" height="160"/>
+    <text class="k" x="1855" y="412">phase 8</text>
+    <text class="t" x="1855" y="434">Retro</text>
+    <text class="m" x="1855" y="458">docs/retro/*</text>
+    <text class="m" x="1855" y="482">update the backlog</text>
+    <text class="m" x="1855" y="498">+ WORKFLOW.md</text>
+    <text class="m" x="1855" y="522">lessons written down</text>
+  </g>
+
+  <!-- agent spawns -->
+  <path class="edge spawn" id="a-pc"   d="M330,750 L330,560"/>
+  <path class="edge spawn" id="a-sa"   d="M930,750 L930,560"/>
+  <path class="edge spawn" id="a-tl4"  d="M1210,750 C 1180,660 1145,620 1132,562"/>
+  <path class="edge spawn" id="a-tl6"  d="M1300,750 C 1370,680 1460,620 1495,562"/>
+  <path class="edge spawn" id="a-qa"   d="M1545,750 L1538,562"/>
+  <path class="edge spawn" id="a-sec"  d="M1755,750 C 1735,680 1620,610 1580,564"/>
+
+  <!-- agents -->
+  <g class="node agent" data-k="pc">
+    <rect x="235" y="750" width="195" height="130"/>
+    <text class="t" x="252" y="778">product-critic</text>
+    <text class="ka" x="252" y="798">attacks the business</text>
+    <text class="m" x="252" y="820">kills bad ideas early</text>
+    <text class="m" x="252" y="836">every claim cited</text>
+    <text class="m" x="252" y="860">model: inherit</text>
+  </g>
+  <g class="node agent" data-k="sa">
+    <rect x="835" y="750" width="195" height="130"/>
+    <text class="t" x="852" y="778">solution-architect</text>
+    <text class="ka" x="852" y="798">proposes, never approves</text>
+    <text class="m" x="852" y="820">options + trade-offs</text>
+    <text class="m" x="852" y="836">+ draft ADRs + spikes</text>
+    <text class="m" x="852" y="860">model: inherit</text>
+  </g>
+  <g class="node agent" data-k="tlr">
+    <rect x="1130" y="750" width="200" height="130"/>
+    <text class="t" x="1147" y="778">tech-lead-reviewer</text>
+    <text class="ka" x="1147" y="798">attacks plan + PR</text>
+    <text class="m" x="1147" y="820">BLOCKING / NON-BLOCK</text>
+    <text class="m" x="1147" y="836">requirement&#8594;task matrix</text>
+    <text class="m" x="1147" y="860">model: inherit</text>
+  </g>
+  <g class="node agent" data-k="qa">
+    <rect x="1450" y="750" width="190" height="130"/>
+    <text class="t" x="1467" y="778">qa-breaker</text>
+    <text class="ka" x="1467" y="798">mandate: break it</text>
+    <text class="m" x="1467" y="820">edge cases · auth · replay</text>
+    <text class="m" x="1467" y="836">scores the checklist</text>
+    <text class="m" x="1467" y="860">model: sonnet</text>
+  </g>
+  <g class="node agent opt" data-k="sec">
+    <rect x="1660" y="750" width="190" height="130"/>
+    <text class="t" x="1677" y="778">security-reviewer</text>
+    <text class="ka" x="1677" y="798">attacker's lens</text>
+    <text class="m" x="1677" y="820">when sensitive ground</text>
+    <text class="m" x="1677" y="836">CRIT/HIGH block merge</text>
+    <text class="m" x="1677" y="860">model: inherit</text>
+  </g>
+</g>
+</svg>
+
+  <div class="zctl">
+    <button id="zOut">&#8722;</button>
+    <span id="zPct">100%</span>
+    <button id="zIn">+</button>
+    <button id="zReset">Reset</button>
+  </div>
+  <div class="src">github.com/ltlongtma/solo-sdlc</div>
+
+  <div class="card" id="flowcap">
+    <button class="x" data-close="flowcap">&#10005;</button>
+    <div class="fname" id="f-name"></div>
+    <ol id="f-steps"></ol>
+  </div>
+
+  <div class="card" id="detail">
+    <button class="x" data-close="detail">&#10005;</button>
+    <h3 id="d-title">Click any node</h3>
+    <div class="meta" id="d-meta">node detail</div>
+    <p id="d-body">Every box is clickable. The chips up top light the path a given track takes — <b>New product</b> runs all nine phases, <b>Trivial</b> jumps straight to execution, <b>Loop-backs</b> (blue) show where a failed gate sends you. Drag to pan, scroll to zoom.</p>
+  </div>
+</div>
+<script>
+const DETAIL = {
+  ceo: { t:"Founder — you", m:"owns every gate", b:"The AI does most of the work; the human is the <b>value gate</b>: pick the track, GO/NO-GO, agree the spec, pick the stack, approve the plan, sign off QA, ship. The AI <b>STOPS</b> at a gate and never walks through one alone. Work only a human can do (accounts, billing, pricing, legal, go-live) goes into the backlog early so it never blocks you at the last minute." },
+  p0:  { t:"Phase 0 — Triage / Idea", m:"owner: human · artifact: docs/backlog.md", b:"Every idea lands in the backlog first. No idea yet → explore with <code>superpowers:brainstorming</code>. Exit gate: is it worth doing, and which of the four rigor tracks applies (trivial / feature / high-risk / new product)." },
+  p1:  { t:"Phase 1 — Validate", m:"new-product track only · human gate", b:"The <code>product-critic</code> agent attacks it: market demand, competitor table, pricing and unit economics (LLM/hosting cost per user), ROI against solo person-weeks, where the first customers come from, risks and incidents. Verdict is <b>GO / CONDITIONAL-GO / NO-GO</b> — every fatal assumption needs the cheapest possible test. <b>Phases 0–1 run in scratch; NO git init yet</b> — a repo is the artifact of deciding to BUILD. NO-GO → no repo, the idea stays one line in the backlog, no regrets. <b>GO → now create the repo</b> and move the validation into <code>docs/business/</code> as the first commit." },
+  p2:  { t:"Phase 2 — Spec", m:"AI proposes → human decides", b:"Produces <code>docs/specs/&lt;feature&gt;.md</code> with an <b>Acceptance checklist</b> — every requirement measurable and checkable (\"unit tests for prose\"; <code>qa-breaker</code> scores it again at phase 6). Trade-offs written down. Driven by <code>superpowers:brainstorming</code> at the solution level: this is WHAT, not yet HOW." },
+  p25: { t:"Phase 2.5 — Clarify", m:"AI asks → human answers", b:"Sweep the spec for ambiguity and gaps, then ask <b>one question at a time</b>. Answers are <b>COMMITTED into the spec's Clarifications section</b>, never left in chat — the next session cannot read this conversation. Exit gate: nothing ambiguous is still blocking the plan." },
+  p3:  { t:"Phase 3 — Architecture", m:"new product / structural change · human gate", b:"HOW — inputs are the spec (WHAT) plus business constraints from validation. The <code>solution-architect</code> agent returns 2–3 stack options with trade-offs, monthly cost, one-person operability, lock-in, and draft ADRs. Once decided, commit the ADR to <code>docs/decisions/</code>. <b>Then the human types <code>/html-diagram</code></b> to generate <code>docs/design/architecture.html</code> from the high-level design (that skill blocks model invocation, so the AI can't run it). If the architecture breaks the spec (infeasible or too expensive) → <b>go back and fix the spec + ADR</b>, never drift silently. The architect proposes and is not the reviewer: the resulting plan still goes through tech-lead-reviewer." },
+  p4:  { t:"Phase 4 — Plan", m:"human gate: approval required", b:"<code>docs/plans/YYYY-MM-DD-&lt;feature&gt;.md</code> with a <b>Verified research</b> section (version/API/library facts plus cited sources — never trust recall). Code, commands, and a verification step per task. <b>Task granularity — four criteria:</b> one concrete red→green test · committable alone with the repo still green · doable by a fresh-context subagent from the plan plus 1–3 named files · no dependency on unfinished work. Oversized tasks are the number-one reason subagents fail and burn the retry budget. The plan also carries a <b>Task status</b> section — <code>- [x] Task N — name — commit hash</code>, the cross-session source of truth (the <code>.superpowers/sdd/</code> ledger is git-ignored and dies with <code>git clean -fdx</code>). A ticked box with no hash counts as not done. Requires at least one review round by <code>tech-lead-reviewer</code> with a requirement→task coverage matrix; fix every BLOCKING finding before presenting." },
+  p5:  { t:"Phase 5 — Execute", m:"owner: AI · has a ceiling", b:"Branch <code>feat/*</code>, never straight to main; several subagents in parallel get their own worktree (<code>superpowers:using-git-worktrees</code>) so they don't collide. Per task: test red → green → commit. <b>No product code before the plan is approved</b> — before the phase 4 gate you may only write artifacts, read code, and spike in scratch (never committed to source). <b>Two-tier retry ceiling</b> (a backstop; the real signal is LACK of progress, not a count): <b>tier 1 — 3 attempts at the same failure</b> (missing it three times means you don't understand the cause → CHANGE approach: re-read the spec/plan, add logging, shrink the repro); <b>tier 2 — 5 attempts per task</b>, each one a NEW failure. Out of attempts or the failure repeats → STOP, revert to the last green commit, report what fails and what you suspect. Subagents get both ceilings in their prompt and never raise them. Stop earlier if fixing A breaks B or you must edit files outside the task's scope." },
+  p6:  { t:"Phase 6 — QA / Review", m:"AI runs → human signs off", b:"Spawn <b>in parallel</b>: <code>tech-lead-reviewer</code> (code/PR), <code>qa-breaker</code> (break it, score the Acceptance checklist), and <code>security-reviewer</code> when the diff touches auth/schema/money/user input/external URLs/public endpoints. Exit gate: CI green + reviews confirmed + checklist passing + <b>zero CRITICAL/HIGH</b> + every divergence covered by an ADR." },
+  p7:  { t:"Phase 7 — Release", m:"human gate: you ship it", b:"Drive with <code>/ship</code> or <code>/land-and-deploy</code> if installed. Exit gate: post-deploy smoke test + rollback plan + an <b>incident runbook</b> at <code>docs/runbook.md</code> (grown from validation's risk section plus what deploying actually taught you) + the architecture diagram updated if the structure changed. On the new-product track, surface the human-only go-to-market items: final pricing, the channel for the first customers, the landing page." },
+  p8:  { t:"Phase 8 — Retro", m:"human + AI · closes the loop", b:"Write lessons into <code>docs/retro/*</code>, update the backlog, and change WORKFLOW.md if the process itself needs to change. <b>Feeds the backlog → the next round starts at phase 0.</b> Hit the \"Loop-backs\" chip to see every backward path." },
+  pc:  { t:"product-critic", m:"agent · phase 1 · model: inherit · report-only", b:"Mandate: <b>kill bad ideas</b> before they eat months of work. Eight areas: problem and customer, real market demand, competitors and substitutes, pricing and unit economics, ROI against effort, distribution (no viable channel is the biggest red flag of all), risks and incidents, and the solo+AI advantage. Every market, competitor, and pricing claim must be sourced; numbers must show their arithmetic. Optional baseline: <code>minimalist-entrepreneur:validate-idea</code> / <code>pricing</code>, or a YC-style office-hours skill." },
+  sa:  { t:"solution-architect", m:"agent · phase 3 · model: inherit · report-only", b:"PROPOSES, never approves. 2–3 architecture/stack options — each with upsides, downsides, monthly cost (with arithmetic), one-person operability, lock-in, and an escape route. Defaults to boring proven tech plus managed services; anything \"hot\" justifies itself twice as hard. Outputs a high-level design (the input for architecture.html), draft ADRs, and the spikes worth running. Core test: <i>\"can one person fix this at 2am?\"</i>" },
+  tlr: { t:"tech-lead-reviewer", m:"agent · phases 4 + 6 · model: inherit · report-only", b:"Adversarial, not the author — assumes the document or code HAS defects. Audits: dependency order, interfaces matching across tasks, placeholders, <b>task granularity</b> (with a concrete split proposal when a task is too big), YAGNI, the <b>requirement→task coverage matrix</b> (a requirement with no task is BLOCKING), risky migrations, and technical claims (verify and cite). If tests or a build exist, it runs them and trusts the real result over the description. Spawned AUTOMATICALLY at the phase 4 gate (plan) and phase 6 (PR)." },
+  qa:  { t:"qa-breaker", m:"agent · phase 6 · model: sonnet · never edits code", b:"Mandate: BREAK it — make the feature fail before a real user does. Runs the full suite and build first, then attacks: empty/huge/unicode/non-ASCII input and basic injection, boundaries ±1, idempotency/replay/concurrency, user A reading user B's data, dead dependencies. Scores every line of the spec's <b>Acceptance checklist</b>. A bug without repro steps doesn't count. Runs on sonnet — the work is mostly running commands and trying inputs, so it's cheaper." },
+  sec: { t:"security-reviewer", m:"agent · phase 6, conditional · model: inherit", b:"Attacker's lens: \"if I were malicious, what could I take?\" Nine areas: secrets, authentication, IDOR/multi-tenancy, injection, SSRF, money and webhooks, abuse and rate limiting, leaks through errors and logs, dependency audit. Spawned when the diff touches auth/schema/money/user input/external URLs/public endpoints; <b>always</b> on the high-risk and new-product tracks. Unresolved CRITICAL/HIGH means the gate is not passed. Dashed border = conditional." },
+};
+
+const FLOWS = {
+  newproduct: {
+    name: "New product / big bet — all nine phases",
+    edges: ["e01","e12","e225","e253","e34","e45","e56","e67","e78","a-pc","a-sa","a-tl4","a-tl6","a-qa","a-sec"],
+    nodes: ["p0","p1","p2","p25","p3","p4","p5","p6","p7","p8","pc","sa","tlr","qa","sec","ceo"],
+    steps: ["Phases 0–1 run in scratch — NO repo yet","Idea into the backlog → <code>product-critic</code> attacks it → you decide GO/NO-GO","<b>GO → now git init</b> + scaffold + commit the validation (NO-GO means no repo, no regrets)","Spec + Clarify committed into the spec → <code>solution-architect</code> presents options → you pick the stack","Plan + tech-lead review → you approve → execute test-first","QA with three agents in parallel → sign off → release + runbook + GTM → retro"]
+  },
+  risky: {
+    name: "Subsystem / high risk — schema, money, auth, migrations",
+    edges: ["s02","e225","e253","e34","e45","e56","e67","e78","a-sa","a-tl4","a-tl6","a-qa","a-sec"],
+    nodes: ["p0","p2","p25","p3","p4","p5","p6","p7","p8","sa","tlr","qa","sec","ceo"],
+    steps: ["Skip Validate (the product exists) — straight to the spec","Phase 3 Architecture is REQUIRED — the change touches architecture or schema","Two adversarial review rounds + <code>security-reviewer</code> REQUIRED","Migrations must come with concrete tests and a rollback path; canary on deploy"]
+  },
+  feature: {
+    name: "Feature — one screen / endpoint in an existing product",
+    edges: ["s02","e225","s254","e45","e56","e67","e78","a-tl4","a-tl6","a-qa"],
+    nodes: ["p0","p2","p25","p4","p5","p6","p7","p8","tlr","qa","ceo"],
+    steps: ["Skip Validate; skip Architecture when nothing structural changes","Spec + Clarify → one plan file, one review round","Execute → QA (tech-lead + qa-breaker; security if the diff touches sensitive ground) → release → retro"]
+  },
+  trivial: {
+    name: "Trivial — typo, one line, config",
+    edges: ["s05","s57"],
+    nodes: ["p0","p5","p7","ceo"],
+    steps: ["Skip phases 1–4 entirely","Branch → fix → PR → CI green → merge","Still never commit straight to main"]
+  },
+  loops: {
+    name: "Loop-backs — the pipeline is not one-way",
+    edges: ["lp-a2","lp-ex4","lp-qa5","lp-cyc"],
+    nodes: ["p0","p2","p3","p4","p5","p6","p8"],
+    steps: ["Phase 3 architecture breaks the spec (infeasible / too expensive) → back to phase 2, fix the spec + ADR","Phase 5 hits the <b>retry ceiling (3 same-failure / 5 per task)</b> → revert, then back to phase 4 (bad plan) or phase 2 (bad spec)","Phase 6 QA/review fails (BLOCKING/CRITICAL) → back to phase 5","Phase 8 retro → feeds the backlog → the next round starts at phase 0","Any backward step that changes a settled artifact gets an ADR explaining why"]
+  },
+  agents: {
+    name: "Agent spawns — the AI spawns these itself",
+    edges: ["a-pc","a-sa","a-tl4","a-tl6","a-qa","a-sec"],
+    nodes: ["pc","sa","tlr","qa","sec","p1","p3","p4","p6"],
+    steps: ["Phase 1: <code>product-critic</code> — the verdict is relayed verbatim, a NO-GO is never softened","Phase 3: <code>solution-architect</code> — proposes; the human decides","Phase 4: <code>tech-lead-reviewer</code> audits the plan — fix every BLOCKING finding before presenting it","Phase 6: <code>tech-lead-reviewer</code> + <code>qa-breaker</code> in parallel; <code>security-reviewer</code> when the diff touches sensitive ground","The principle: the author never grades their own work — reviewers are fresh context"]
+  }
+};
+
+const stage = document.getElementById('stage');
+const nodes = document.querySelectorAll('.node');
+const edges = document.querySelectorAll('.edge');
+const elbls = document.querySelectorAll('.elbl');
+const chips = document.querySelectorAll('.chip');
+const fcap = document.getElementById('flowcap');
+const detail = document.getElementById('detail');
+
+function setFlow(key) {
+  chips.forEach(c => c.classList.toggle('on', c.dataset.flow === key));
+  edges.forEach(e => e.classList.remove('lit'));
+  elbls.forEach(l => l.classList.remove('lit'));
+  nodes.forEach(n => n.classList.remove('lit'));
+  if (key === 'all') { stage.classList.remove('flowing'); fcap.classList.remove('show'); return; }
+  const f = FLOWS[key];
+  stage.classList.add('flowing');
+  f.edges.forEach(id => document.getElementById(id)?.classList.add('lit'));
+  elbls.forEach(l => { if (f.edges.includes(l.dataset.e)) l.classList.add('lit'); });
+  f.nodes.forEach(k => document.querySelector(`.node[data-k="${k}"]`)?.classList.add('lit'));
+  document.getElementById('f-name').textContent = f.name;
+  document.getElementById('f-steps').innerHTML = f.steps.map(s => `<li>${s}</li>`).join('');
+  fcap.classList.add('show');
+}
+chips.forEach(c => c.addEventListener('click', () => setFlow(c.dataset.flow)));
+
+nodes.forEach(n => n.addEventListener('click', () => {
+  nodes.forEach(x => x.classList.remove('sel'));
+  n.classList.add('sel');
+  const d = DETAIL[n.dataset.k];
+  if (!d) return;
+  document.getElementById('d-title').textContent = d.t;
+  document.getElementById('d-meta').textContent = d.m;
+  document.getElementById('d-body').innerHTML = d.b;
+  detail.classList.remove('hide');
+}));
+
+document.querySelectorAll('.card .x').forEach(b => b.addEventListener('click', () => {
+  const el = document.getElementById(b.dataset.close);
+  if (b.dataset.close === 'flowcap') el.classList.remove('show');
+  else el.classList.add('hide');
+}));
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const dark = !document.documentElement.classList.contains('dark');
+  document.documentElement.classList.toggle('dark', dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+});
+
+/* pan + zoom */
+const svg = document.getElementById('svg');
+const content = document.getElementById('svg-content');
+let tx = 0, ty = 0, s = 1;
+function apply() {
+  content.setAttribute('transform', `translate(${tx},${ty}) scale(${s})`);
+  document.getElementById('zPct').textContent = Math.round(s * 100) + '%';
+}
+function toSvg(evt) {
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+let panning = false, moved = false, last = null;
+svg.addEventListener('mousedown', e => {
+  panning = true; moved = false; last = toSvg(e);
+  svg.classList.add('panning');
+});
+window.addEventListener('mousemove', e => {
+  if (!panning) return;
+  const p = toSvg(e);
+  const dx = p.x - last.x, dy = p.y - last.y;
+  if (Math.abs(dx) + Math.abs(dy) > 0) {
+    tx += dx; ty += dy; last = p;
+    if (Math.hypot(dx, dy) > 0.5) moved = true;
+    apply();
+  }
+});
+window.addEventListener('mouseup', () => { panning = false; svg.classList.remove('panning'); });
+svg.addEventListener('click', e => {
+  if (moved) { e.stopPropagation(); moved = false; }
+}, true);
+
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  const p = toSvg(e);
+  const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const s2 = Math.min(5, Math.max(0.3, s * factor));
+  tx = p.x - (p.x - tx) * (s2 / s);
+  ty = p.y - (p.y - ty) * (s2 / s);
+  s = s2; apply();
+}, { passive: false });
+
+document.getElementById('zIn').addEventListener('click', () => { s = Math.min(5, s * 1.2); apply(); });
+document.getElementById('zOut').addEventListener('click', () => { s = Math.max(0.3, s / 1.2); apply(); });
+document.getElementById('zReset').addEventListener('click', () => { tx = 0; ty = 0; s = 1; apply(); });
+apply();
+</script>
+</body>
+</html>
