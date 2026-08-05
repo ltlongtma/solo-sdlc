@@ -1,6 +1,6 @@
 ---
 name: sdlc
-description: Drive the full SDLC pipeline (triage → validate → spec → architecture → plan → execute → QA → release → retro) for a solo founder working with AI. Use when the user has a new product or feature idea, wants to brainstorm or validate a startup idea, starts a new project, says "run the SDLC" / "take this from idea to ship" / "validate my idea" / "critique this idea", or wants to resume an existing project by the process.
+description: Use when a solo founder working with AI has a new product or feature idea, wants to brainstorm or validate a startup idea, starts a new project, says "run the SDLC" / "take this from idea to ship" / "validate my idea" / "critique this idea", or wants to resume an existing project by the process.
 ---
 
 # SDLC — one founder + AI
@@ -17,7 +17,12 @@ A 9-phase pipeline with gates. AI does most of the work; the human is the **valu
    - **Run phases 0–1 in a scratch directory** (backlog + validation live in scratch). The idea can still come back NO-GO — don't spawn an orphan repo.
    - **Only scaffold the repo once phase 1's gate returns GO** (new-product track). On GO → ask the human where to put it and what to call it → `git init` → scaffold → **move the validation out of scratch into `docs/business/`** (first commit) → continue to phase 2.
    - Tracks other than new-product (adding a feature to a product that exists) already have a repo — this deferral does not apply.
-3. **Scaffold (first time creating the repo):** create `docs/{business,specs,plans,decisions,design,releases,retro}/` + `docs/backlog.md`, and copy this skill's *Pipeline*, *rigor tracks*, *Agent roles*, *Living architecture diagram*, and *Hard rules* sections into the project's own `docs/WORKFLOW.md` (adjusting skill/tool names to what is actually installed).
+3. **Scaffold (first time creating the repo):**
+   - `docs/{business,specs,plans,decisions,design,releases,retro}/` + `docs/backlog.md`.
+   - `docs/WORKFLOW.md` — copy this skill's *Pipeline*, *rigor tracks*, *Agent roles*, *Living architecture diagram*, and *Hard rules* sections (adjusting skill/tool names to what is actually installed).
+   - **`AGENTS.md` at the repo root** — the entry point for whoever shows up next, human or AI: current track + the phase in flight, the open spec and plan, where the process lives (`docs/WORKFLOW.md`), where the system is drawn (`docs/design/architecture.html`), and the commands to run tests/typecheck/build. Refresh it at every gate — this is the file *Living architecture diagram* sends the next session to read first, so it cannot be missing.
+   - **Secret hygiene, before the first commit** — a `.gitignore` covering `.env*` (allowing `.env.example`), and a committed `.env.example` listing every variable name with placeholder values, never a real secret. `security-reviewer` audits `git log --all -- '*.env*'` at phase 6; a secret committed once lives in history forever, so this is far cheaper than the cleanup.
+   - **CI, before phase 5 produces anything to review** — a PR workflow running tests + typecheck + build (plus a secret scanner such as `gitleaks` if available, and the architecture-diagram check from *Living architecture diagram* once that script exists). The phase 6 gate reads "CI green", which means nothing until this exists. Existing repo with no CI → adding it is task 1 of the first plan, not a later nice-to-have.
 4. **Run the pipeline** — a fresh idea starts at phase 0; an existing project resumes at its real phase.
 
 ## The 9 phases
