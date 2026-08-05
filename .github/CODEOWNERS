@@ -1,0 +1,5 @@
+# Every file in this repo is owned by the maintainer, so every pull request
+# requests his review before it can reach main. The ruleset on main enforces it
+# (require_code_owner_review), and this file is what gives that rule teeth —
+# without a CODEOWNERS file the rule matches nobody and passes silently.
+*       @ltlongtma
