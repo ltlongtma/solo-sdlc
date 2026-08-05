@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1168 712" width="1168" height="712" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="solo-sdlc nine phase pipeline">
+<rect width="1168" height="712" fill="#FAF9F5"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#87867F"/></marker>
+<marker id="arc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97757"/></marker>
+<marker id="arb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4E7189"/></marker>
+</defs>
+<rect x="26" y="88" width="450" height="204" rx="14" fill="#F4F2EA" stroke="#D1CFC5" stroke-width="1" stroke-dasharray="5 5"/>
+<text x="40" y="110" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#87867F" letter-spacing="0.08em">RUNS IN SCRATCH &#8212; NO REPO YET</text>
+<path d="M240,203.0 L258,203.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M462,203.0 L480,203.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M684,203.0 L702,203.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M906,203.0 L924,203.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M240,427.0 L258,427.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M462,427.0 L480,427.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M684,427.0 L702,427.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M906,427.0 L924,427.0" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M1028.0,278 L1028.0,330 L140.0,330 L140.0,348" stroke="#87867F" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<text x="473.0" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#B08A3E" text-anchor="middle">GO &#8594; git init</text>
+<path d="M998.0,128 C998.0,70 614.0,70 614.0,128" stroke="#4E7189" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arb)" opacity="0.85"/>
+<text x="806.0" y="75.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#4E7189" text-anchor="middle">architecture breaks the spec</text>
+<path d="M332.0,502 C332.0,536 170.0,536 170.0,502" stroke="#4E7189" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arb)" opacity="0.85"/>
+<text x="251.0" y="544.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#4E7189" text-anchor="middle">retry ceiling hit</text>
+<path d="M554.0,502 C554.0,574 392.0,574 392.0,502" stroke="#4E7189" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arb)" opacity="0.85"/>
+<text x="473.0" y="573.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#4E7189" text-anchor="middle">BLOCKING / CRITICAL</text>
+<path d="M1028.0,502 L1028.0,606 L80.0,606 L80.0,282" stroke="#4E7189" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arb)" opacity="0.85"/>
+<text x="806.0" y="598" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#4E7189" text-anchor="middle">next round starts at phase 0</text>
+<path d="M386.0,278 L386.0,292" stroke="#87867F" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+<text x="394.0" y="306" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">NO-GO: no repo, no regrets</text>
+<rect x="40" y="128" width="200" height="150" rx="11" fill="#FFFFFF" stroke="#D1CFC5" stroke-width="1.6"/>
+<text x="55" y="153" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#87867F" letter-spacing="0.08em">PHASE 0</text>
+<text x="55" y="179" font-size="19" font-weight="600" fill="#141413">Triage / Idea</text>
+<text x="55" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">docs/backlog.md</text>
+<text x="55" y="265" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">pick 1 of 4 tracks</text>
+<text x="55" y="228" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">idea-level brainstorm</text>
+<rect x="262" y="128" width="200" height="150" rx="11" fill="#FBEFE9" stroke="#D97757" stroke-width="1.6"/>
+<text x="277" y="153" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#D97757" letter-spacing="0.08em">PHASE 1</text>
+<text x="277" y="179" font-size="19" font-weight="600" fill="#141413">Validate</text>
+<text x="277" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">docs/business/*.md</text>
+<text x="277" y="265" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#D97757">GATE  GO / NO-GO</text>
+<rect x="273" y="218" width="178" height="28" rx="7" fill="#EFF2E8" stroke="#788C5D" stroke-width="1"/>
+<text x="362.0" y="237" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#788C5D" text-anchor="middle">product-critic</text>
+<rect x="484" y="128" width="200" height="150" rx="11" fill="#FFFFFF" stroke="#D1CFC5" stroke-width="1.6"/>
+<text x="499" y="153" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#87867F" letter-spacing="0.08em">PHASE 2</text>
+<text x="499" y="179" font-size="19" font-weight="600" fill="#141413">Spec</text>
+<text x="499" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">docs/specs/*.md</text>
+<text x="499" y="265" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">WHAT, not yet HOW</text>
+<text x="499" y="228" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">+ acceptance checks</text>
+<rect x="706" y="128" width="200" height="150" rx="11" fill="#FFFFFF" stroke="#D1CFC5" stroke-width="1.6"/>
+<text x="721" y="153" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#87867F" letter-spacing="0.08em">PHASE 2.5</text>
+<text x="721" y="179" font-size="19" font-weight="600" fill="#141413">Clarify</text>
+<text x="721" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">spec: Clarifications</text>
+<text x="721" y="265" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">nothing left in chat</text>
+<text x="721" y="228" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">answers -&gt; the spec</text>
+<rect x="928" y="128" width="200" height="150" rx="11" fill="#FBEFE9" stroke="#D97757" stroke-width="1.6"/>
+<text x="943" y="153" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#D97757" letter-spacing="0.08em">PHASE 3</text>
+<text x="943" y="179" font-size="19" font-weight="600" fill="#141413">Architecture</text>
+<text x="943" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">docs/decisions/ ADR</text>
+<text x="943" y="265" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#D97757">GATE  pick the stack</text>
+<rect x="939" y="218" width="178" height="28" rx="7" fill="#EFF2E8" stroke="#788C5D" stroke-width="1"/>
+<text x="1028.0" y="237" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#788C5D" text-anchor="middle">solution-architect</text>
+<rect x="40" y="352" width="200" height="150" rx="11" fill="#FBEFE9" stroke="#D97757" stroke-width="1.6"/>
+<text x="55" y="377" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#D97757" letter-spacing="0.08em">PHASE 4</text>
+<text x="55" y="403" font-size="19" font-weight="600" fill="#141413">Plan</text>
+<text x="55" y="428" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">docs/plans/*.md</text>
+<text x="55" y="489" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#D97757">GATE  approve plan</text>
+<rect x="51" y="442" width="178" height="28" rx="7" fill="#EFF2E8" stroke="#788C5D" stroke-width="1"/>
+<text x="140.0" y="461" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#788C5D" text-anchor="middle">tech-lead-reviewer</text>
+<rect x="262" y="352" width="200" height="150" rx="11" fill="#FFFFFF" stroke="#D1CFC5" stroke-width="1.6"/>
+<text x="277" y="377" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#87867F" letter-spacing="0.08em">PHASE 5</text>
+<text x="277" y="403" font-size="19" font-weight="600" fill="#141413">Execute</text>
+<text x="277" y="428" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">feat/* branch</text>
+<text x="277" y="489" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">ceiling 3/5 -&gt; revert</text>
+<text x="277" y="452" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">red -&gt; green -&gt; commit</text>
+<rect x="484" y="352" width="200" height="150" rx="11" fill="#FFFFFF" stroke="#D1CFC5" stroke-width="1.6"/>
+<text x="499" y="377" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#87867F" letter-spacing="0.08em">PHASE 6</text>
+<text x="499" y="403" font-size="19" font-weight="600" fill="#141413">QA / Review</text>
+<text x="499" y="428" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">PR + review notes</text>
+<text x="499" y="489" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">0 CRITICAL / HIGH</text>
+<rect x="495" y="442" width="178" height="28" rx="7" fill="#EFF2E8" stroke="#788C5D" stroke-width="1"/>
+<text x="584.0" y="461" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#788C5D" text-anchor="middle">3 agents in parallel</text>
+<rect x="706" y="352" width="200" height="150" rx="11" fill="#FBEFE9" stroke="#D97757" stroke-width="1.6"/>
+<text x="721" y="377" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#D97757" letter-spacing="0.08em">PHASE 7</text>
+<text x="721" y="403" font-size="19" font-weight="600" fill="#141413">Release</text>
+<text x="721" y="428" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">tag + runbook.md</text>
+<text x="721" y="489" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#D97757">GATE  you ship it</text>
+<text x="721" y="452" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">smoke + rollback</text>
+<rect x="928" y="352" width="200" height="150" rx="11" fill="#FFFFFF" stroke="#D1CFC5" stroke-width="1.6"/>
+<text x="943" y="377" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#87867F" letter-spacing="0.08em">PHASE 8</text>
+<text x="943" y="403" font-size="19" font-weight="600" fill="#141413">Retro</text>
+<text x="943" y="428" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#3D3D3A">docs/retro/*</text>
+<text x="943" y="489" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">feeds the backlog</text>
+<text x="943" y="452" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">lessons written down</text>
+<rect x="40" y="677" width="16" height="14" rx="4" fill="#FBEFE9" stroke="#D97757" stroke-width="1.4"/>
+<text x="65" y="688" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">human gate: the AI stops here</text>
+<rect x="316.5" y="677" width="16" height="14" rx="4" fill="#EFF2E8" stroke="#788C5D" stroke-width="1.4"/>
+<text x="341.5" y="688" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">agent spawned, fresh context</text>
+<path d="M585.5,684 L601.5,684" stroke="#4E7189" stroke-width="1.8" stroke-dasharray="4 4"/>
+<text x="610.5" y="688" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#87867F">loop-back when a gate fails</text>
+</svg>

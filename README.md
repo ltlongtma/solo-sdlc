@@ -31,23 +31,12 @@ The `sdlc` skill also auto-triggers on things like *"take this idea to productio
 
 ## The pipeline
 
-```mermaid
-flowchart LR
-    P0["0 · Triage<br/>idea-level brainstorm"] --> P1{{"1 · Validate<br/>⛔ GO / NO-GO"}}
-    P1 -->|"GO → git init"| P2["2 · Spec<br/>WHAT + acceptance checklist"]
-    P1 -.->|NO-GO| STOP(["stop · no repo"])
-    P2 --> P25["2.5 · Clarify<br/>Q→A into the spec"]
-    P25 --> P3{{"3 · Architecture<br/>⛔ pick the stack"}}
-    P3 --> P4{{"4 · Plan<br/>⛔ human approves"}}
-    P4 --> P5["5 · Execute<br/>red → green → commit"]
-    P5 --> P6["6 · QA / Review<br/>3 agents in parallel"]
-    P6 --> P7{{"7 · Release<br/>⛔ human ships"}}
-    P7 --> P8["8 · Retro"]
-    P8 -.->|next round| P0
-    P3 -.->|breaks the spec| P2
-    P5 -.->|retry ceiling hit| P4
-    P6 -.->|BLOCKING| P5
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/pipeline-dark.svg">
+  <img alt="The nine phases: Triage, Validate, Spec, Clarify, Architecture, Plan, Execute, QA/Review, Release, Retro. Phases 0-1 run in scratch with no repo; four phases are human gates; three loop-backs return to an earlier phase when a gate fails." src="docs/pipeline-light.svg" width="100%">
+</picture>
+
+<sub>Phase 6 spawns three agents in parallel: `tech-lead-reviewer`, `qa-breaker`, and `security-reviewer` (the last one only when the diff touches sensitive ground). Regenerate the diagram with `python3 docs/generate-pipeline-svg.py`.</sub>
 
 | # | Phase | Artifact | Gate |
 |---|---|---|---|
