@@ -112,6 +112,10 @@ Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, 
 
 ## Design decisions worth knowing about
 
+**Required sections are slots, not reminders.** `scaffold.sh` writes a template set into `docs/templates/`, and every artifact starts as a copy of one. The sections gates read — acceptance checklist, clarifications, verified research, task status, rollback — are pre-cut slots marked REQUIRED. A prose instruction to "remember the acceptance checklist" gets skipped under pressure; an empty slot in the file you're already editing does not. Numbered requirement IDs (`R1`, `R2`) exist for the same reason: they make `tech-lead-reviewer`'s requirement→task matrix mechanical instead of a judgement call.
+
+**The repo stays self-describing.** Scaffolding also writes `docs/WORKFLOW.md` (the full process, stamped with the plugin version it came from) and `AGENTS.md` (track, phase in flight, open spec and plan, real build commands). Both are for the agent that shows up without this plugin installed — including one that isn't Claude.
+
 **Task granularity is a gate, not a suggestion.** Oversized tasks are the number-one reason subagents fail. A task ships only if it has one red→green test, is committable on its own with the repo still green, can be done by a fresh-context agent from the plan plus 1–3 named files, and depends on nothing unfinished.
 
 **Task status lives in git.** Agent scratch ledgers are git-ignored and vanish. So the plan file carries `- [x] Task 3 — <name> — <commit hash>`, ticked the moment the task goes green. A ticked box with no hash counts as not done.

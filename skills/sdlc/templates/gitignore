@@ -1,0 +1,28 @@
+# Secrets — never commit a real one. A secret committed once lives in git history forever.
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Dependencies / build
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+*.log
+
+# Agent scratch — git-ignored on purpose. Task status lives in the plan file, not here.
+.superpowers/
+.claude/settings.local.json
+
+# Spikes are never committed. Answer the question, write the conclusion into the plan, delete the spike.
+scratch/
+spike/
