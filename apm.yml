@@ -1,0 +1,32 @@
+name: solo-sdlc
+version: 0.1.0
+description: >-
+  A gated 9-phase SDLC for a solo founder shipping with AI: idea → validate →
+  spec → architecture → plan → execute → QA → release → retro. Ships one
+  pipeline skill plus five adversarial review agents.
+author:
+  name: Long Luu
+  url: https://github.com/ltlongtma
+license: MIT
+homepage: https://github.com/ltlongtma/solo-sdlc
+repository: https://github.com/ltlongtma/solo-sdlc
+keywords:
+  - sdlc
+  - solo-founder
+  - startup
+  - spec-driven-development
+  - code-review
+  - qa
+  - security-review
+  - architecture
+  - workflow
+
+# No dependencies: the pipeline works standalone. Integrations listed in the
+# README are opt-in and detected at runtime, never installed on your behalf.
+dependencies:
+  apm: []
+  mcp: []
+
+# Publication boundary. skills/, agents/, and commands/ live at the repo root in
+# plugin-native layout, so there is no .apm/ source tree to mirror.
+includes: auto
