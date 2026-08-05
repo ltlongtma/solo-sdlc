@@ -33,6 +33,7 @@ That's more useful than a proposed rewrite, because it tells us whether the rule
 - **Project-specific or stack-specific rules.** If it only helps Next.js apps or your company's conventions, keep it in your own repo's `docs/WORKFLOW.md` — the skill is designed for that override.
 - **More phases.** Nine is already a lot. New process weight has to earn its place by naming the failure it prevents.
 - **Removing human gates.** The gates are the point. If a gate is in the wrong place, argue for moving it, not deleting it.
+- **Pinning models or effort upward.** `model: inherit` respects the ceiling the user already chose, aliases don't rot the way full model IDs do, and frontmatter `effort` overrides the user's own `/effort` setting — so raising it here spends their money without asking. A cheaper model for a provably mechanical agent is welcome; the reverse needs evidence that the default actually misses findings. See *Tuning models and effort* in the README.
 
 ## Structure
 

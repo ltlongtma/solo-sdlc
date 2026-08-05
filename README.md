@@ -67,6 +67,27 @@ There's an interactive version of this diagram in [`docs/workflow-diagram.html`]
 
 All of them report and never edit — fixing belongs to the main session.
 
+## Tuning models and effort
+
+The plugin is deliberately almost neutral here, and the defaults are worth understanding before you change them.
+
+**Models.** Four agents ship as `model: inherit`, so they run on whatever you chose for the session — which is normally the strongest model you have. `qa-breaker` ships as `model: sonnet`: it spends most of its turns running the suite, trying inputs, and tabulating results, and it's the agent you run most often, so it's the one place a cheaper model pays for itself. Nothing is pinned to a full model ID (`claude-opus-5`) — only aliases, so the plugin doesn't rot when a new model lands.
+
+**Effort.** No agent sets `effort`, on purpose. [The default is already `high`](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level) on every model that supports effort, so writing `effort: high` into these files would change nothing. And frontmatter effort *overrides your session level* — pinning `xhigh` here would silently spend more than someone who deliberately ran `/effort medium` asked for. `max` also carries a documented risk of overthinking.
+
+If you do want to tune it, this is where each dial lives:
+
+| What you want | How |
+| --- | --- |
+| A different model for one agent | Edit `model:` in `agents/<name>.md` — alias (`opus`, `sonnet`, `haiku`, `fable`), a full model ID, or `inherit` |
+| A different model for *all* subagents | `CLAUDE_CODE_SUBAGENT_MODEL` — takes precedence over every agent file |
+| Deeper reasoning on the merge-blocking reviewers | Add `effort: xhigh` to `agents/tech-lead-reviewer.md` and `agents/security-reviewer.md`. Defensible: a missed BLOCKING finding costs more than the tokens |
+| Cheaper QA passes | `model: haiku` on `qa-breaker`, or add `effort: medium` |
+| One phase deeper than the rest | Set it on your session with `/effort` before that phase — a skill spanning nine phases can't carry one useful effort value |
+| Cap it globally | `CLAUDE_CODE_EFFORT_LEVEL` — takes precedence over frontmatter and the session |
+
+Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, architecture, plan review) are judgment-heavy and where a bad call is expensive to unwind. **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules. **6** is judgment-heavy again, which is why its reviewers inherit rather than downgrade.
+
 ## Design decisions worth knowing about
 
 **Task granularity is a gate, not a suggestion.** Oversized tasks are the number-one reason subagents fail. A task ships only if it has one red→green test, is committable on its own with the repo still green, can be done by a fresh-context agent from the plan plus 1–3 named files, and depends on nothing unfinished.
