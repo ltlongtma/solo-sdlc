@@ -39,10 +39,13 @@ That's more useful than a proposed rewrite, because it tells us whether the rule
 
 ```
 .claude-plugin/     plugin.json + marketplace.json
+apm.yml             APM manifest, for installs outside Claude Code
 skills/sdlc/        the pipeline skill
 agents/             five review agents
 commands/           per-phase entry points
 docs/               interactive workflow diagram
 ```
 
-Version bumps go in `.claude-plugin/plugin.json`. Keep the version and the README's phase table in sync when the pipeline changes.
+The layout is plugin-native, so nothing needs mirroring into an `.apm/` source tree — `apm pack` reads `skills/`, `agents/`, and `commands/` straight from the root, and copies the hand-written `.claude-plugin/plugin.json` into the bundle rather than synthesizing one from `apm.yml`.
+
+The version therefore lives in **three** places and all three must move together, or consumers stop seeing updates: `.claude-plugin/plugin.json`, the plugin entry in `.claude-plugin/marketplace.json`, and `apm.yml`. Keep the README's phase table in sync too when the pipeline changes.

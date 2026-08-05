@@ -12,10 +12,32 @@ Three ideas do most of the work:
 
 ## Install
 
+**Claude Code**
+
 ```
 /plugin marketplace add ltlongtma/solo-sdlc
 /plugin install solo-sdlc@solo-sdlc
 ```
+
+**Any other agent, via [APM](https://github.com/microsoft/apm)** — Copilot, Cursor, Codex, Gemini, OpenCode, Windsurf, Kiro:
+
+```
+apm install ltlongtma/solo-sdlc
+```
+
+APM writes each primitive to the directory your harness actually reads: skills to `.agents/skills/` (the location Copilot, Cursor, Codex, Gemini, OpenCode and Windsurf share) or to `.claude/skills/` and `.kiro/skills/` for the two that differ, and agents to the harness-specific agents directory. `apm.lock.yaml` pins the version.
+
+**VS Code / GitHub Copilot, without APM** — the plugin format is shared, and VS Code looks for `.claude-plugin/plugin.json`, so this repo installs as-is. Run **Chat: Install Plugin From Source** from the Command Palette and paste the repo URL (requires `chat.plugins.enabled`).
+
+**By hand** — Cursor and VS Code both read `~/.claude/`, so symlinking works too:
+
+```
+git clone https://github.com/ltlongtma/solo-sdlc
+ln -s "$PWD/solo-sdlc/skills/sdlc" ~/.claude/skills/sdlc
+ln -s "$PWD"/solo-sdlc/agents/*.md ~/.claude/agents/
+```
+
+Two caveats on the non-Claude paths, both untested by me: the `commands/` directory may not surface as slash commands outside Claude Code, and `qa-breaker`'s `model: sonnet` may be ignored — in which case it simply runs on your session model. The skill auto-triggers either way.
 
 ## Use it
 
