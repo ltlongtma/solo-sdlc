@@ -80,6 +80,13 @@ Web search and fetch are mandatory. Use a browsing or scraping skill (`/browse`,
 one is installed — review sites and pricing pages often need a real browser. The Hacker News
 Algolia API returns dated JSON and is worth scripting rather than scraping.
 
+**Run the scouts cheap.** Fetching a page, pulling a quote out of it and filling in a fixed
+schema is not intelligence-sensitive work, and this step spawns more subagents than the rest of
+the pipeline combined. If the harness lets you choose, give every scout a faster/cheaper tier
+and a low reasoning setting; the same goes for the fetch-heavy half of step 4. Keep the
+*judgment* — clustering in step 3, reading the competition shape, scoring in step 5 — on
+whatever the session is already running. Downgrading those is how a shortlist turns into slop.
+
 ### 3 · Cluster
 
 Group records by **job to be done**, not by tool or by industry. *"Reconcile payouts against
