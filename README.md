@@ -42,6 +42,7 @@ Verified with `apm install --target cursor`: all 11 primitives land, the skill a
 ## Use it
 
 ```
+/solo-sdlc:find-idea  <nothing, or a vague idea>        # phase 0 — mine the web, shortlist 2-3 ideas
 /solo-sdlc:start      I want to build a tool that ...   # full pipeline, from anywhere
 /solo-sdlc:validate   <a rough idea>                    # phase 1 only — is this worth building?
 /solo-sdlc:architect                                    # phase 3 only — stack options + trade-offs
@@ -49,7 +50,7 @@ Verified with `apm install --target cursor`: all 11 primitives land, the skill a
 /solo-sdlc:converge                                      # reconcile real code against spec + plan
 ```
 
-The `sdlc` skill also auto-triggers on things like *"take this idea to production"* or *"resume this project properly"*. A vague idea is a fine starting point — phase 0 exists to sharpen it.
+The `sdlc` skill also auto-triggers on things like *"take this idea to production"* or *"resume this project properly"*. A vague idea is a fine starting point — phase 0 exists to sharpen it. **No idea at all is also a fine starting point**: `find-idea` mines complaints, reviews, job ads and market shifts for a pain somebody already pays to escape, and hands you a shortlist instead of a guess.
 
 ## The pipeline
 
@@ -62,7 +63,7 @@ The `sdlc` skill also auto-triggers on things like *"take this idea to productio
 
 | # | Phase | Artifact | Gate |
 |---|---|---|---|
-| 0 | Triage / Idea | `docs/backlog.md` | Worth doing? which track? |
+| 0 | Triage / Idea | `docs/backlog.md` (+ an idea scan, if you started with nothing) | Worth doing? which track? |
 | 1 | Validate | `docs/business/<idea>-validation.md` | **GO / NO-GO ⛔** |
 | 2 | Spec | `docs/specs/<feature>.md` + acceptance checklist | Spec agreed |
 | 2.5 | Clarify | Clarifications section in the spec | Nothing ambiguous blocks the plan |
