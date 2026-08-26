@@ -1,5 +1,5 @@
 name: solo-sdlc
-version: 0.1.0
+version: 0.2.0
 description: >-
   A gated 9-phase SDLC for a solo founder shipping with AI: idea → validate →
   spec → architecture → plan → execute → QA → release → retro. Ships an
