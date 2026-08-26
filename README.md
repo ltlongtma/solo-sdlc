@@ -42,6 +42,7 @@ Verified with `apm install --target cursor`: all 11 primitives land, the skill a
 ## Use it
 
 ```
+/solo-sdlc:find-idea  <nothing, or a vague idea>        # phase 0 — mine the web, shortlist 2-3 ideas
 /solo-sdlc:start      I want to build a tool that ...   # full pipeline, from anywhere
 /solo-sdlc:validate   <a rough idea>                    # phase 1 only — is this worth building?
 /solo-sdlc:architect                                    # phase 3 only — stack options + trade-offs
@@ -49,7 +50,7 @@ Verified with `apm install --target cursor`: all 11 primitives land, the skill a
 /solo-sdlc:converge                                      # reconcile real code against spec + plan
 ```
 
-The `sdlc` skill also auto-triggers on things like *"take this idea to production"* or *"resume this project properly"*. A vague idea is a fine starting point — phase 0 exists to sharpen it.
+The `sdlc` skill also auto-triggers on things like *"take this idea to production"* or *"resume this project properly"*. A vague idea is a fine starting point — phase 0 exists to sharpen it. **No idea at all is also a fine starting point**: `find-idea` mines complaints, reviews, job ads and market shifts for a pain somebody already pays to escape, and hands you a shortlist instead of a guess.
 
 ## The pipeline
 
@@ -62,7 +63,7 @@ The `sdlc` skill also auto-triggers on things like *"take this idea to productio
 
 | # | Phase | Artifact | Gate |
 |---|---|---|---|
-| 0 | Triage / Idea | `docs/backlog.md` | Worth doing? which track? |
+| 0 | Triage / Idea | `docs/backlog.md` (+ an idea scan, if you started with nothing) | Worth doing? which track? |
 | 1 | Validate | `docs/business/<idea>-validation.md` | **GO / NO-GO ⛔** |
 | 2 | Spec | `docs/specs/<feature>.md` + acceptance checklist | Spec agreed |
 | 2.5 | Clarify | Clarifications section in the spec | Nothing ambiguous blocks the plan |
@@ -103,12 +104,14 @@ If you do want to tune it, this is where each dial lives:
 | --- | --- |
 | A different model for one agent | Edit `model:` in `agents/<name>.md` — alias (`opus`, `sonnet`, `haiku`, `fable`), a full model ID, or `inherit` |
 | A different model for *all* subagents | `CLAUDE_CODE_SUBAGENT_MODEL` — takes precedence over every agent file |
+| The single biggest saving | `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` before phase 5. Execution subagents are spawned by your SDD skill, not by this plugin, so no agent file reaches them — and once tasks satisfy the granularity rules (one test, one commit, 1–3 files) the extra capability buys very little |
+| Cheaper idea scans | Nothing to configure — `find-idea` already tells its scouts to run on a cheap tier where the harness allows it, and keeps clustering and scoring on the session model |
 | Deeper reasoning on the merge-blocking reviewers | Add `effort: xhigh` to `agents/tech-lead-reviewer.md` and `agents/security-reviewer.md`. Defensible: a missed BLOCKING finding costs more than the tokens |
 | Cheaper QA passes | `model: haiku` on `qa-breaker`, or add `effort: medium` |
 | One phase deeper than the rest | Set it on your session with `/effort` before that phase — a skill spanning nine phases can't carry one useful effort value |
 | Cap it globally | `CLAUDE_CODE_EFFORT_LEVEL` — takes precedence over frontmatter and the session |
 
-Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, architecture, plan review) are judgment-heavy and where a bad call is expensive to unwind. **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules. **6** is judgment-heavy again, which is why its reviewers inherit rather than downgrade.
+Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, architecture, plan review) are judgment-heavy and where a bad call is expensive to unwind. **0** is split — the scouts that go and read the internet are mechanical, while clustering what they bring back and scoring it is not. **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules. **6** is judgment-heavy again, which is why its reviewers inherit rather than downgrade.
 
 ## Design decisions worth knowing about
 

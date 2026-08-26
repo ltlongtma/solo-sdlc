@@ -2,8 +2,9 @@ name: solo-sdlc
 version: 0.1.0
 description: >-
   A gated 9-phase SDLC for a solo founder shipping with AI: idea → validate →
-  spec → architecture → plan → execute → QA → release → retro. Ships one
-  pipeline skill plus five adversarial review agents.
+  spec → architecture → plan → execute → QA → release → retro. Ships an
+  evidence-first idea finder, the pipeline skill, and five adversarial review
+  agents.
 author:
   name: Long Luu
   url: https://github.com/ltlongtma
