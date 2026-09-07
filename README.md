@@ -132,7 +132,7 @@ Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, 
 Everything works standalone. When these are installed, the skill and agents use them as a baseline layer and keep going:
 
 - [`superpowers`](https://github.com/obra/superpowers) — `brainstorming`, `writing-plans`, `subagent-driven-development`, `test-driven-development`, `using-git-worktrees`. The strongest pairing; solo-sdlc supplies the business gates and review agents that sit around it.
-- [`plannotator/effective-html`](https://github.com/plannotator/effective-html) — `/html-diagram` for the living architecture diagram.
+- [`tt-a1i/archify`](https://github.com/tt-a1i/archify) — `archify` for the living architecture diagram.
 - `minimalist-entrepreneur` — pricing, first customers, and marketing frameworks at phases 1 and 7.
 - gstack — `/qa`, `/browse`, `/review`, `/ship`, `/cso`, `/retro`.
 - Trail of Bits `skills` — security plugins used by `security-reviewer` on large PRs.

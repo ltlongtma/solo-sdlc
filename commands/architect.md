@@ -8,7 +8,7 @@ Run **only phase 3 (Architecture)** of the `sdlc` skill. Do not write product co
 2. Spawn the `solution-architect` agent. It must return 2–3 options with upsides, downsides, monthly cost (with arithmetic), one-person operability, lock-in, plus a recommendation and draft ADRs.
 3. Present the options to the user and discuss. **Do not pick for them.**
 4. Once they decide: commit the ADR to `docs/decisions/NNNN-<slug>.md` and update the spec's architecture section.
-5. Then prompt the user to run `/html-diagram` themselves to produce `docs/design/architecture.html` from the high-level design (that skill blocks model invocation). If it isn't installed, offer to write the diagram by hand to the standard in the skill.
+5. Then invoke the `archify` skill to produce `docs/design/architecture.html` from the high-level design. If it isn't installed, offer to write the diagram by hand to the standard in the skill.
 
 Remember: the architect proposes and is never the reviewer — whatever plan comes out of this still goes through `tech-lead-reviewer` at phase 4.
 
