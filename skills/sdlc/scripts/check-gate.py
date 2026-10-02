@@ -7,8 +7,9 @@ Conditions (all must hold):
      "[A<n>]"; no test carrying "[A<n>]" is failed, skipped, fixme, pending or todo;
      a Vitest report with success=false or any test file not "passed" fails;
   2. every human-B A<n> is answered in the gates file;
-  3. every reviews/*.md has bucket headings, and no unresolved blocking finding
-     sits in its bucket sections;
+  3. every reviews/*.md has the four bucket headings, and no unresolved blocking
+     finding sits in any ## section except "## Return summary"; every
+     --require-review NAME has a *-NAME-*.md file in review format;
   4. UI spec: every UI A<n> (Verify by: e2e) has a ledger row whose verdict is
      live-ui-verified at a SHA that counts for --sha: same commit (prefix match,
      >=7 chars), or an earlier commit with no non-docs/ change since then.
@@ -22,6 +23,7 @@ Output: one "path:line: problem" per failure, then "gate: PASS" or "gate: FAIL (
 """
 import argparse
 import functools
+import fnmatch
 import glob
 import json
 import os
@@ -53,13 +55,14 @@ def read_lines(path, what):
 
 
 def sections(lines):
-    """Yield (heading_text, [(lineno, line), ...]) for each '## ' section."""
+    """Yield (heading_text, [(lineno, line), ...]) for each '## ' section; the heading line
+    itself is the first body entry."""
     name, body = None, []
     for i, line in enumerate(lines, 1):
         if line.startswith("## "):
             if name is not None:
                 yield name, body
-            name, body = line[3:].strip(), []
+            name, body = line[3:].strip(), [(i, line)]
         elif name is not None:
             body.append((i, line))
     if name is not None:
@@ -225,23 +228,35 @@ def check_gates(spec_path, items, gates_path):
 
 # ---------- reviews ----------
 
-def check_reviews(reviews_dir):
+def check_reviews(reviews_dir, required=()):
     if not os.path.isdir(reviews_dir):
         problem(reviews_dir, 0, "reviews directory not found")
         return
+    valid = []  # basenames of files in review format
     for path in sorted(glob.glob(os.path.join(reviews_dir, "*.md"))):
         lines = read_lines(path, "review")
         if lines is None:
             continue
-        found = [(name, body) for name, body in sections(lines) if name.lower().startswith(BUCKETS)]
-        if not found:  # fail closed: findings outside the buckets would never be scanned
-            problem(path, 0, "not in review format (no Act on/Consider/Noted/Dismissed headings)")
-        for name, body in found:  # only findings count; preamble and return summary are prose
+        secs = list(sections(lines))
+        names = [name.lower() for name, _ in secs]
+        missing = [b for b in BUCKETS if not any(n.startswith(b) for n in names)]
+        if missing:  # fail closed: a file without the buckets is not a review the gate understands
+            problem(path, 0, "not in review format (missing headings: " + ", ".join(missing) + ")")
+        else:
+            valid.append(os.path.basename(path))
+        # Every ## section counts, heading included, except the return summary (prose for the
+        # caller). The preamble before the first ## is instructions, not findings.
+        for name, body in secs:
+            if name.lower().startswith("return summary"):
+                continue
             for n, line in body:
                 # Any case of "blocking" marks a blocker ("non-blocking" does not); only the
                 # literal "[resolved]" token resolves it.
                 if re.search(r"(?<![\w-])blocking\b", line, re.I) and "[resolved]" not in line:
                     problem(path, n, f"unresolved BLOCKING finding: {line.strip()[:200]}")
+    for name in required:
+        if not any(fnmatch.fnmatch(f, f"*-{name}-*.md") for f in valid):
+            problem(reviews_dir, 0, f"required review '{name}' missing: no *-{name}-*.md in review format")
 
 
 # ---------- ledger ----------
@@ -295,6 +310,8 @@ def main():
     ap.add_argument("--ledger", help="QA ledger TSV (docs/qa/ledger.tsv); required for UI specs")
     ap.add_argument("--gates", help="gates file (docs/gates.md); required when spec has human-B items")
     ap.add_argument("--reviews", required=True, help="reviews directory (docs/reviews/)")
+    ap.add_argument("--require-review", action="append", default=[], metavar="NAME",
+                    help="fail unless --reviews has a *-NAME-*.md file in review format (repeatable)")
     ap.add_argument("--sha", required=True, help="commit SHA under test (>=7 hex chars)")
     args = ap.parse_args()
 
@@ -309,7 +326,7 @@ def main():
         check_gates(args.spec, items, args.gates)
         if is_ui:
             check_ledger(args.spec, items, args.ledger, args.sha)
-    check_reviews(args.reviews)
+    check_reviews(args.reviews, args.require_review)
 
     for p in problems:
         print(p)

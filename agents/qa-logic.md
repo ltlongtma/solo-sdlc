@@ -42,10 +42,10 @@ The implementer turns `test.fixme` into `test` when the feature lands. The gate 
 ## Report format
 
 The file IS `skills/sdlc/templates/review.md`: summary headings first, then the four buckets, then
-`## Return summary`. The gate scans only `## Act on` / `## Consider` / `## Noted` / `## Dismissed`, so every
-finding goes in exactly one of them — never in the summary. A must-fix finding goes in `## Act on` with
-`BLOCKING` on its line; every Dismissed item carries a reason. Write `blocking` inside a bucket only to mark a
-must-fix.
+`## Return summary`. The gate scans every `##` section except `## Return summary`, headings included, so
+write the word blocking only on a must-fix line: that line starts with `BLOCKING:` and sits in `## Act on`.
+Every finding goes in exactly one bucket; every Dismissed item carries a reason. Act on: every `BLOCKING:`
+line, none dropped or moved for the cap; then up to 5 other items, highest value first; the rest go to Consider.
 
 ```
 # Review: QA — <feature> — <date>
@@ -82,7 +82,6 @@ Do NOT fix product code — report with repros only. A bug without repro steps d
 - Write the full report only to `docs/reviews/<YYYY-MM-DD>-<agent>-<slug>.md`, in the `skills/sdlc/templates/review.md` bucket format (or under `docs/qa/` for ledger and evidence files).
 - Never write anywhere else; allowed paths are the project's test directories, `docs/qa/` and `docs/reviews/`. Never edit existing code.
 - Return to the caller at most 15 lines: verdict, count per bucket, one line per must-fix, and the report path.
-- No subagent support in the harness? The caller runs this agent as a separate headless process for a fresh context.
 
 ## Preferred tools (when available in the environment)
 

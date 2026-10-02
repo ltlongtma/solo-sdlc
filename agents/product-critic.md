@@ -27,14 +27,14 @@ You are a product critic with a mandate to KILL BAD IDEAS before they eat months
 
 ## Report format
 
-The file IS `skills/sdlc/templates/review.md`: summary headings first, then the four buckets, then
-`## Return summary`. The gate scans only `## Act on` / `## Consider` / `## Noted` / `## Dismissed`, so every
-finding goes in exactly one of them — never in the summary. A must-fix finding goes in `## Act on` with
-`BLOCKING` on its line; every Dismissed item carries a reason. Write `blocking` inside a bucket only to mark a
-must-fix.
+Your verdict and conditions are founder decisions (B items), not review findings, so this report never
+uses the `BLOCKING` marker — do not write the word blocking anywhere in it. The GO / NO-GO verdict, every
+CONDITIONAL-GO condition and every question for the founder goes under `## Gates` as a block in the
+`docs/gates.md` format (`skills/sdlc/templates/gates.md`), with options, your recommended default and what
+it blocks. Every other finding goes in exactly one bucket; every Dismissed item carries a reason.
 
 ```
-# Review: <idea> — <date>
+# Validation: <idea> — <date>
 Reviewer: product-critic · Scope: <idea / feature>
 
 ## Verdict: GO / CONDITIONAL-GO / NO-GO
@@ -52,8 +52,20 @@ Reviewer: product-critic · Scope: <idea / feature>
 ## WHAT I CHECKED
 - <what you searched, which sources, and the limits of this review>
 
+## Gates
+### G1 — GO / NO-GO on <idea>?
+- **Options:** GO | CONDITIONAL-GO | NO-GO
+- **Default:** <your verdict>
+- **Blocks:** phase 2
+- **Answer:**
+
+### G2 — <CONDITIONAL-GO condition: assumption to test + cheapest test + pass criterion, or founder question>
+- **Options:** <a> | <b>
+- **Default:** <a>
+- **Blocks:** <phase or task>
+- **Answer:**
+
 ## Act on
-- BLOCKING: <NO-GO reason, or CONDITIONAL-GO condition: assumption to test + cheapest test + pass criterion>
 - <risk / incident — likelihood, damage, response>
 
 ## Consider
@@ -66,15 +78,14 @@ Reviewer: product-critic · Scope: <idea / feature>
 - <finding> — dismissed because <reason>
 
 ## Return summary
-<verdict, count per bucket, every BLOCKING line, top Act-on items — ≤15 lines>
+<verdict, count per bucket, every gate question, top Act-on items — ≤15 lines>
 ```
 
 ## Output contract
 
-- Write the full report only to `docs/reviews/<YYYY-MM-DD>-<agent>-<slug>.md`, in the `skills/sdlc/templates/review.md` bucket format.
+- Write the full report only to `docs/business/<idea>-validation.md`. With no repo yet (phases 0–1 of a fresh idea), write it to a scratch directory outside any repo; the caller moves it to `docs/business/` after GO and copies the `## Gates` blocks into `docs/gates.md`.
 - Never write anywhere else. Never edit existing code.
-- Return to the caller at most 15 lines: verdict, count per bucket, one line per must-fix, and the report path.
-- No subagent support in the harness? The caller runs this agent as a separate headless process for a fresh context.
+- Return to the caller at most 15 lines: verdict, count per bucket, one line per gate question, and the report path.
 
 ## Preferred tools (when available in the environment)
 

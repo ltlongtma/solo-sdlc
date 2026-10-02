@@ -22,7 +22,7 @@ gate, or agent → report the drift and propose a sync, but keep following this 
 | 3 | Architecture | ADR in `docs/decisions/` + spec architecture section + `docs/design/architecture.html` | Stack chosen, trade-offs recorded | **Human ⛔** |
 | 4 | Plan | `docs/plans/YYYY-MM-DD-<feature>.md` + verified research + task status | Every task passes the granularity rules; ≥1 adversarial review round with a requirement→task matrix | **Human approves ⛔** |
 | 5 | Execute | commits on `feat/*` | Per task: test red → green → commit → tick task status with the commit hash | AI |
-| 6 | QA / Review | PR + review notes + ADR for any divergence | CI green + reviews confirmed + acceptance checklist passes + no CRITICAL/HIGH open | AI runs → **human signs off** |
+| 6 | QA / Review | PR + review notes + ADR for any divergence | `check-gate` exits 0 (see `commands/gate.md`): tests, ledger, required reviews, no unresolved BLOCKING | AI runs; only B items in `docs/gates.md` stop for the human |
 | 7 | Release | merge + tag + `docs/releases/*` + `docs/runbook.md` | Smoke test + rollback plan + runbook + diagram matches reality | **Human ships ⛔** |
 | 8 | Retro | `docs/retro/*` + backlog + this file | Lessons written down | Human + AI |
 

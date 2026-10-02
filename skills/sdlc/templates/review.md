@@ -3,12 +3,15 @@
 Reviewer: <agent or person> · Scope: <commit range / files>
 
 Every finding goes in exactly one bucket. Mark a must-fix-before-merge finding by starting it with
-`BLOCKING:` (any case); when fixed, append `[resolved]` on the same line. The gate scans only the
-four bucket sections below: a marked line there without `[resolved]` fails it. Keep instructions
-and the return summary outside those sections.
+`BLOCKING:` (any case); when fixed, the reviewer who raised it appends `[resolved]` on the same line.
+The gate scans every `##` section except `## Return summary`, headings included: a line there with
+the word blocking and no `[resolved]` fails it. Write the word blocking only on a must-fix line.
+
+Act on: every `BLOCKING:` line, none dropped or moved for the cap; then up to 5 other items,
+highest value first; the rest go to Consider.
 
 ## Act on
-<≤5 items, highest value first. Must-fix items start with the marker described above.>
+<must-fix lines first, then the capped items, as described above>
 
 - <finding, location, fix>
 
