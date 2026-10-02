@@ -37,11 +37,11 @@ The file IS `skills/sdlc/templates/review.md`: summary headings first, then the 
 `## Return summary`. The gate scans every `##` section except `## Return summary`, headings included, so
 write the word blocking only on a must-fix line: that line starts with `BLOCKING:` and sits in `## Act on`.
 Every finding goes in exactly one bucket; every Dismissed item carries a reason. Act on: every `BLOCKING:`
-line, none dropped or moved for the cap; then up to 5 other items, highest value first; the rest go to Consider.
+line, none dropped or moved for the cap; then up to 5 other items, highest value first; the rest go to Consider. The first token after `Scope:` is `git rev-parse HEAD` at review time; the gate ignores a review whose SHA no longer counts.
 
 ```
 # Review: UI QA — <feature> — <date>
-Reviewer: qa-ui · Scope: commit <sha>
+Reviewer: qa-ui · Scope: <HEAD sha> <spec>
 
 ## UI states
 | Screen | State | Viewport | Mockup match | axe | Console | Result | Evidence |

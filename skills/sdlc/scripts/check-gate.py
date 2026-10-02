@@ -25,6 +25,7 @@ import argparse
 import functools
 import fnmatch
 import glob
+import itertools
 import json
 import os
 import re
@@ -37,6 +38,8 @@ PLACEHOLDER_RE = re.compile(r"<[^>]*>")
 TESTED_KINDS = ("e2e", "integration", "unit")
 UNANSWERED = ("", "tbd", "-", "?")
 BUCKETS = ("act on", "consider", "noted", "dismissed")
+MARKER_RE = re.compile(r"(?<![\w-])(?:BLOCKING\b|(?i:blocking):)")
+SCOPE_RE = re.compile(r"\bScope:\s*`?([0-9a-fA-F]{7,40})\b")
 
 problems = []
 
@@ -228,11 +231,11 @@ def check_gates(spec_path, items, gates_path):
 
 # ---------- reviews ----------
 
-def check_reviews(reviews_dir, required=()):
+def check_reviews(reviews_dir, sha, required=()):
     if not os.path.isdir(reviews_dir):
         problem(reviews_dir, 0, "reviews directory not found")
         return
-    valid = []  # basenames of files in review format
+    valid = []  # (basename, scope sha) of files in review format
     for path in sorted(glob.glob(os.path.join(reviews_dir, "*.md"))):
         lines = read_lines(path, "review")
         if lines is None:
@@ -243,20 +246,25 @@ def check_reviews(reviews_dir, required=()):
         if missing:  # fail closed: a file without the buckets is not a review the gate understands
             problem(path, 0, "not in review format (missing headings: " + ", ".join(missing) + ")")
         else:
-            valid.append(os.path.basename(path))
+            preamble = itertools.takewhile(lambda line: not line.startswith("## "), lines)
+            scope = next((m.group(1) for m in map(SCOPE_RE.search, preamble) if m), "")
+            valid.append((os.path.basename(path), scope))
         # Every ## section counts, heading included, except the return summary (prose for the
         # caller). The preamble before the first ## is instructions, not findings.
         for name, body in secs:
             if name.lower().startswith("return summary"):
                 continue
             for n, line in body:
-                # Any case of "blocking" marks a blocker ("non-blocking" does not); only the
-                # literal "[resolved]" token resolves it.
-                if re.search(r"(?<![\w-])blocking\b", line, re.I) and "[resolved]" not in line:
+                # Marker: uppercase BLOCKING, or "blocking:" in any case ("NON-BLOCKING" and
+                # prose like "no blocking issues" are not); only literal "[resolved]" resolves it.
+                if MARKER_RE.search(line) and "[resolved]" not in line:
                     problem(path, n, f"unresolved BLOCKING finding: {line.strip()[:200]}")
     for name in required:
-        if not any(fnmatch.fnmatch(f, f"*-{name}-*.md") for f in valid):
+        mine = [scope for f, scope in valid if fnmatch.fnmatch(f, f"*-{name}-*.md")]
+        if not mine:
             problem(reviews_dir, 0, f"required review '{name}' missing: no *-{name}-*.md in review format")
+        elif not any(scope and sha_counts(scope, sha) for scope in mine):
+            problem(reviews_dir, 0, f"required review '{name}' is stale: no *-{name}-*.md has a 'Scope: <sha>' that counts for {sha}")
 
 
 # ---------- ledger ----------
@@ -326,7 +334,7 @@ def main():
         check_gates(args.spec, items, args.gates)
         if is_ui:
             check_ledger(args.spec, items, args.ledger, args.sha)
-    check_reviews(args.reviews, args.require_review)
+    check_reviews(args.reviews, args.sha, args.require_review)
 
     for p in problems:
         print(p)

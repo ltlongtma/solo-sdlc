@@ -9,3 +9,6 @@
 ## Noted
 
 ## Dismissed
+
+## WHAT I CHECKED
+- no blocking issues found; Blocking issues would go in Act on

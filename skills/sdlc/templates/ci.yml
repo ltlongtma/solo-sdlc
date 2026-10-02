@@ -109,6 +109,7 @@ jobs:
           # Reviews that must exist in docs/reviews/ as *-<name>-*.md (see commands/gate.md). Add
           # qa-ui for a UI spec and security-reviewer when it ran, e.g.
           # REQUIRE_REVIEWS: "tech-lead-reviewer qa-logic qa-ui security-reviewer"
+          # The default fails a trivial-track PR, which has no reviews: set REQUIRE_REVIEWS: "" for it.
           REQUIRE_REVIEWS: "tech-lead-reviewer qa-logic"
         run: |
           if [ -z "$SPEC" ]; then
