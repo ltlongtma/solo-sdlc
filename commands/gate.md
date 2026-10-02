@@ -21,6 +21,6 @@ Run **only phase 6 (QA / Review)** of the `sdlc` skill on the current branch or 
 
 3. **Fix loop.** Send the Act on findings to a **fresh implementer** — never the main session, never the reviewer. The reviewer who raised a finding re-reviews the fix diff and marks it `[resolved]` in its review file. Max 2 rounds. Still unresolved: if it needs the human, add a B item to `docs/gates.md`; otherwise re-plan.
 
-4. **Rerun `check-gate`.** Never declare a pass without exit 0 — quote its output line. Then ask the user for sign-off; do not merge on your own.
+4. **Rerun `check-gate`.** Never declare a pass without exit 0 — quote its output line. A green gate merges with no sign-off; only B items (prod deploy, money, destructive data ops — see `docs/gates.md`) stop for the human.
 
 Scope: $ARGUMENTS
