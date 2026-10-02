@@ -17,7 +17,8 @@ The phase 7 gate is not "it looks fine" — these lines are the proof.
 | CI green on the merge commit | <link / commit> |
 | Acceptance checklist passing | <link to spec + who verified> |
 | `tech-lead-reviewer` | <clean / findings fixed> |
-| `qa-breaker` | <bugs found + fixed> |
+| `qa-logic` | <bugs found + fixed> |
+| `qa-ui` (UI specs) | <ledger rows live-ui-verified at the release sha> |
 | `security-reviewer` (if the diff needed it) | <no CRITICAL/HIGH open, or why it was skipped> |
 | Architecture diagram matches reality | <updated / no structural change> |
 | Runbook exists and covers this change | <…> |
