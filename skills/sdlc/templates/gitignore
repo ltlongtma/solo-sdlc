@@ -26,3 +26,6 @@ coverage/
 # Spikes are never committed. Answer the question, write the conclusion into the plan, delete the spike.
 scratch/
 spike/
+
+# evidence skill scratch (left behind only if ffmpeg fails mid-run)
+docs/qa/evidence/.*.tmp/
