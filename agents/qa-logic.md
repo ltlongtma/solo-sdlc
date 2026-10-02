@@ -1,7 +1,8 @@
 ---
 name: qa-logic
 description: "Acceptance tests first, then break-it QA on logic. Use PROACTIVELY at the start of plan/execute — writes one failing-by-design acceptance test per spec A-id (test.fixme, titled [A<n>]) BEFORE any implementation. Use again after execution — runs the full suite and build, attacks business rules, money math, multi-screen flows, edge cases (empty/huge/unicode/non-ASCII text), error paths, cross-account access, idempotency/replay. Also use when the user says \"write the acceptance tests\", \"try to break it\", or \"QA this feature\"."
-model: sonnet
+model: opus
+effort: high
 disallowedTools: Edit, NotebookEdit
 ---
 
@@ -54,7 +55,14 @@ tests: X pass / Y fail / Z fixme · typecheck: ... · build: ...
 - <what + what it needs (env, account, key)>
 ```
 
-Do NOT fix product code — report with repros only. A bug without repro steps doesn't count. The only files you write into the repo are acceptance tests (Mode 1). If an attack needs a script or fixture, write it into a scratch/temp directory, NEVER into the repo.
+Do NOT fix product code — report with repros only. A bug without repro steps doesn't count.
+
+## Output contract
+
+- Write the full report only to `docs/reviews/<YYYY-MM-DD>-<agent>-<slug>.md`, in the `skills/sdlc/templates/review.md` bucket format (or under `docs/qa/` for ledger and evidence files).
+- Never write anywhere else; allowed paths are the project's test directories, `docs/qa/` and `docs/reviews/`. Never edit existing code.
+- Return to the caller at most 15 lines: verdict, count per bucket, one line per must-fix, and the report path.
+- No subagent support in the harness? The caller runs this agent as a separate headless process for a fresh context.
 
 ## Preferred tools (when available in the environment)
 
