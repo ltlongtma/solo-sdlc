@@ -1,16 +1,26 @@
 ---
-description: "Phase 6 only — run the QA/review gate: tech-lead review, break-it QA, and security review in parallel."
+description: "Phase 6 only — run the QA/review gate: check-gate, then fresh-context reviewers in parallel, fixes by a fresh implementer."
 ---
 
-Run **only phase 6 (QA / Review)** of the `sdlc` skill on the current branch or PR.
+Run **only phase 6 (QA / Review)** of the `sdlc` skill on the current branch or PR. The gate is a script, not a statement: only `check-gate` exit 0 passes it.
 
-1. Establish the real status first: full test suite, typecheck, build. Report anything red verbatim.
-2. Spawn **in parallel**:
-   - `tech-lead-reviewer` — review the code/diff, including a requirement→diff coverage check against the spec.
-   - `qa-breaker` — attack the feature and score it against the spec's Acceptance checklist.
-   - `security-reviewer` — **only if** the diff touches auth/sessions, schema/RLS/migrations, money/webhooks, user input/uploads, fetching external URLs, or public endpoints. Always spawn it for high-risk or new-product work. If you skip it, say why.
-3. Collect the findings, deduplicate, and present them grouped: BLOCKING / CRITICAL first, then the rest.
-4. Fix what needs fixing (you are the main session — the agents only report).
-5. State plainly whether the gate passes: CI green + reviews confirmed + acceptance checklist passing + no CRITICAL/HIGH open + every spec divergence covered by an ADR. Then ask the user for sign-off — do not merge on your own.
+1. **Contract check first.** Run the full test suite with JSON reporters, then:
+   ```
+   python3 scripts/sdlc/check-gate.py --spec docs/specs/<slug>.md --reports reports/*.json \
+     --ledger docs/qa/ledger.tsv --gates docs/gates.md --reviews docs/reviews --sha "$(git rev-parse HEAD)"
+   ```
+   If it fails, it lists what is missing (tests, ledger rows, gate answers). Fix that before any review.
+
+2. **Spawn reviewers in parallel, each in a fresh context:**
+   - `tech-lead-reviewer` — the diff, plus requirement→diff coverage against the spec.
+   - `qa-logic` — acceptance tests, business rules, money math, multi-screen flows.
+   - `qa-ui` — UI specs only: real browser, mockup, axe, console, ledger rows.
+   - `security-reviewer` — when the diff touches auth, schema, money, uploads, user input, or a public endpoint. If skipped, say why.
+
+   Each writes `docs/reviews/<date>-<agent>-<slug>.md` in the `review.md` buckets — **Act on** (≤5, must-fix lines marked `BLOCKING:`), **Consider**, **Noted**, **Dismissed** (each with a reason) — and returns ≤15 lines. No multi-vendor panel. Without subagents, run each reviewer as a separate headless process.
+
+3. **Fix loop.** Send the Act on findings to a **fresh implementer** — never the main session, never the reviewer. The reviewer who raised a finding re-reviews the fix diff and marks it `[resolved]` in its review file. Max 2 rounds. Still unresolved: if it needs the human, add a B item to `docs/gates.md`; otherwise re-plan.
+
+4. **Rerun `check-gate`.** Never declare a pass without exit 0 — quote its output line. Then ask the user for sign-off; do not merge on your own.
 
 Scope: $ARGUMENTS
