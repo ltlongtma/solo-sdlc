@@ -105,6 +105,9 @@ PY
 )"
 if [ "$(tr ' ' '\n' <<<"$vers" | sort -u | wc -l)" -eq 1 ]; then ok "version-sync ($vers)"; else bad "version-sync ($vers)"; fi
 
+# 6. Claude Code adapter hooks
+bash tests/hooks.sh && ok hooks || bad hooks
+
 echo "---"
 [ "$fail" -eq 0 ] && echo "all checks passed" || echo "$fail check(s) failed"
 [ "$fail" -eq 0 ]

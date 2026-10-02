@@ -54,3 +54,7 @@ Implementer spawns use `"@sdlc-standard"`; quick lookups use `"@sdlc-fast"`.
 ### Other harnesses
 
 Put the provider's model id for each tier in the project's `docs/preferences.md` (for example `strong: <id>`), and spawn with it.
+
+## Claude Code adapter (optional hooks)
+
+The plugin ships two thin hooks in `hooks/` that only read `docs/status.md`: a `Stop` hook (`continue-or-stop.sh`) that blocks stopping while `next` is a real action and `waiting-on-human` is `none`, and a `SessionStart` hook (`session-start.sh`) that injects the status as context. They need `jq`, and do nothing without `docs/status.md`. They hold no logic the skill depends on; other harnesses can call the same scripts from their own hook systems (JSON on stdin with a `cwd` field).
