@@ -1,0 +1,18 @@
+{
+  "config": {
+    "configFile": "playwright.config.ts",
+    "rootDir": "e2e",
+    "version": "1.55.0",
+    "workers": 1,
+    "projects": [
+      {
+        "outputDir": "test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/
