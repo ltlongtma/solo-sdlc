@@ -33,8 +33,8 @@ That's more useful than a proposed rewrite, because it tells us whether the rule
 - **Hard dependencies on third-party tools.** Everything must work standalone. Integrations are opt-in and referenced conditionally.
 - **Project-specific or stack-specific rules.** If it only helps Next.js apps or your company's conventions, keep it in your own repo's `docs/WORKFLOW.md` — the skill is designed for that override.
 - **More phases.** Nine is already a lot. New process weight has to earn its place by naming the failure it prevents.
-- **Removing human gates.** The gates are the point. If a gate is in the wrong place, argue for moving it, not deleting it.
-- **Pinning models or effort upward.** `model: inherit` respects the ceiling the user already chose, aliases don't rot the way full model IDs do, and frontmatter `effort` overrides the user's own `/effort` setting — so raising it here spends their money without asking. A cheaper model for a provably mechanical agent is welcome; the reverse needs evidence that the default actually misses findings. See *Tuning models and effort* in the README.
+- **Adding human stops.** Gates are classified B / T / R (see `skills/sdlc/references/decision-policy.md`). Only B items (money, GO/NO-GO, production deploy, destructive data, legal or customer-facing content, scope cuts, brand) block synchronously; T decisions are recorded as ADRs; R rubber-stamp approvals are replaced by scripts (`check-spec`, `check-plan`, `check-gate`) plus fresh-context review. If a decision is in the wrong class, argue for reclassifying it with evidence, not for adding a stop.
+- **Changing model tiers without evidence.** Reviewer agents (`product-critic`, `solution-architect`, `tech-lead-reviewer`, `qa-logic`, `qa-ui`, `security-reviewer`) run on `opus` at `high` effort, because a reviewer at least as strong as the author is what makes a gate worth passing. Prefer aliases over full model IDs, which rot. A cheaper tier for a provably mechanical task is welcome; moving a reviewer down needs evidence that findings are not lost. See `skills/sdlc/references/model-tiers.md`.
 
 ## Structure
 
@@ -42,9 +42,9 @@ That's more useful than a proposed rewrite, because it tells us whether the rule
 .claude-plugin/     plugin.json + marketplace.json
 apm.yml             APM manifest, for installs outside Claude Code
 skills/sdlc/        the pipeline skill
-agents/             five review agents
+agents/             six review agents (product-critic, solution-architect, tech-lead-reviewer, qa-logic, qa-ui, security-reviewer)
 commands/           per-phase entry points
-docs/               interactive workflow diagram
+docs/               interactive workflow diagram + README pipeline SVGs (`python3 docs/generate-pipeline-svg.py`)
 ```
 
 The layout is plugin-native, so nothing needs mirroring into an `.apm/` source tree — `apm pack` reads `skills/`, `agents/`, and `commands/` straight from the root, and copies the hand-written `.claude-plugin/plugin.json` into the bundle rather than synthesizing one from `apm.yml`.

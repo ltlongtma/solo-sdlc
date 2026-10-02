@@ -1,29 +1,27 @@
 # <project name>
 
-Entry point for whoever shows up next, human or AI. Read this file first, then open the architecture
-diagram. Refresh it at every gate — a stale AGENTS.md is worse than none, because it is trusted.
+Entry point for whoever shows up next, human or AI.
+
+**Resume order:** this file → `docs/status.md` (current state) → `python3 scripts/sdlc/check-plan.py docs/plans/<plan>.md --list` (plan path from `docs/status.md`; converge if it reports problems).
+Do not trust plan checkboxes: a ticked task with no commit hash counts as not done.
+
+## Invariants
+
+- Branches `feat/*` `fix/*` `docs/*`; never commit straight to main. Commits: `type(scope): description`.
+- Diverging from the spec is a bug unless an ADR in `docs/decisions/` says otherwise.
+- Only B items (`docs/gates.md`) stop for the human; everything else is decided and recorded.
+- Technical claims get verified against docs and cited, never recalled.
+- Reviews are done by a separate fresh-context agent, never by the author.
 
 ## Where things are
 
 | | |
 |---|---|
-| Process this project follows | `docs/WORKFLOW.md` |
+| Current state, in-flight work, waiting-on-human | `docs/status.md` |
+| Deviations from the standard process | `docs/WORKFLOW.md` |
 | The system, drawn | `docs/design/architecture.html` |
-| Backlog (where the next round starts) | `docs/backlog.md` |
-| Specs · plans · decisions | `docs/specs/` · `docs/plans/` · `docs/decisions/` |
+| Backlog · specs · plans · decisions | `docs/backlog.md` · `docs/specs/` · `docs/plans/` · `docs/decisions/` |
 | Runbook (when production is broken) | `docs/runbook.md` |
-
-## Right now
-
-- **Track:** <trivial | feature | subsystem | new-product>
-- **Phase in flight:** <N — name>
-- **Open spec:** `docs/specs/<slug>.md`
-- **Open plan:** `docs/plans/<file>.md` — task status lives in that file, not in a scratch ledger
-- **Branch:** `feat/<slug>`
-- **Blocked on:** <a human gate? a decision? nothing?>
-
-**Resuming work in flight → converge before writing any code.** Do not trust the plan's checkboxes:
-read the code and `git log`, then reconcile. A ticked box with no commit hash counts as not done.
 
 ## Commands
 
@@ -33,14 +31,11 @@ read the code and `git log`, then reconcile. A ticked box with no commit hash co
 <typecheck>
 <build>
 <dev>
+python3 scripts/sdlc/check-plan.py docs/plans/<plan>.md --list   # task table, then the plan checks (plan path from docs/status.md)
+python3 scripts/sdlc/check-spec.py docs/specs/<slug>.md    # spec gate
+python3 scripts/sdlc/check-plan.py docs/plans/<file>.md    # plan gate
+python3 scripts/sdlc/check-gate.py --spec <spec> --reports <json...> --reviews docs/reviews/   # QA gate (see commands/gate.md)
 ```
-
-## Conventions
-
-- Branches: `feat/*` `fix/*` `docs/*`. Never commit straight to main.
-- Commits: `type(scope): description`.
-- Code that departs from the spec is a bug unless an ADR in `docs/decisions/` explains it.
-- Technical claims get verified against docs and cited, never recalled.
 
 ## Things a newcomer gets wrong here
 

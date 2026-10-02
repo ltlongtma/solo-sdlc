@@ -60,9 +60,9 @@ for i, l in section(lines, "Task status"):
 if a.list:
     for t in tasks:
         _, ticked, h = status.get(t["id"], (0, False, ""))
+        valid = ticked and re.fullmatch(r"[0-9a-f]{7,40}", h)
         tier = (field(t["block"], "Tier") or (0, "?"))[1]
-        print(f"{t['id']} · {t['name']} · {tier} · {'done ' + h if ticked else 'todo'}")
-    sys.exit(0)
+        print(f"{t['id']} · {t['name']} · {tier} · {'done ' + h if valid else 'todo (no hash)' if ticked else 'todo'}")
 
 # --- spec ---
 spec = a.spec

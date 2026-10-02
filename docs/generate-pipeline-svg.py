@@ -41,14 +41,14 @@ THEMES = {
 # line2 is replaced by an agent chip when one is registered for that cell.
 PHASES = [
     (0, 0, "PHASE 0", "Triage / Idea", "docs/backlog.md", "idea-level brainstorm", "pick 1 of 4 tracks", "plain"),
-    (1, 0, "PHASE 1", "Validate", "docs/business/*.md", None, "GATE  GO / NO-GO", "gate"),
-    (2, 0, "PHASE 2", "Spec", "docs/specs/*.md", "+ acceptance checks", "WHAT, not yet HOW", "plain"),
+    (1, 0, "PHASE 1", "Validate", "docs/business/*.md", None, "B GATE  GO / NO-GO", "gate"),
+    (2, 0, "PHASE 2", "Spec", "docs/specs/*.md", "+ acceptance checks", "check-spec (pre-push)", "plain"),
     (3, 0, "PHASE 2.5", "Clarify", "spec: Clarifications", "answers -> the spec", "nothing left in chat", "plain"),
-    (4, 0, "PHASE 3", "Architecture", "docs/decisions/ ADR", None, "GATE  pick the stack", "gate"),
-    (0, 1, "PHASE 4", "Plan", "docs/plans/*.md", None, "GATE  approve plan", "gate"),
+    (4, 0, "PHASE 3", "Architecture", "docs/decisions/ ADR", None, "T: AI picks, ADR", "plain"),
+    (0, 1, "PHASE 4", "Plan", "docs/plans/*.md", None, "check-plan (pre-push)", "plain"),
     (1, 1, "PHASE 5", "Execute", "feat/* branch", "red -> green -> commit", "ceiling 3/5 -> revert", "plain"),
-    (2, 1, "PHASE 6", "QA / Review", "PR + review notes", None, "0 CRITICAL / HIGH", "plain"),
-    (3, 1, "PHASE 7", "Release", "tag + runbook.md", "smoke + rollback", "GATE  you ship it", "gate"),
+    (2, 1, "PHASE 6", "QA / Review", "PR + docs/reviews/", None, "check-gate exit 0 (CI)", "plain"),
+    (3, 1, "PHASE 7", "Release", "tag + runbook.md", "smoke + rollback", "B GATE  prod deploy", "gate"),
     (4, 1, "PHASE 8", "Retro", "docs/retro/*", "lessons written down", "feeds the backlog", "plain"),
 ]
 
@@ -57,7 +57,7 @@ AGENTS = [
     (1, 0, "product-critic"),
     (4, 0, "solution-architect"),
     (0, 1, "tech-lead-reviewer"),
-    (2, 1, "3 agents in parallel"),
+    (2, 1, "qa-logic/qa-ui +2 more"),
 ]
 
 
@@ -175,11 +175,15 @@ def build(t):
             a(f'<text x="{x + 15}" y="{y + 100}" font-family="{mono}" font-size="{MONO_PX}" '
               f'fill="{t["muted"]}">{esc(line2)}</text>')
 
+    a(f'<text x="40" y="{H - 52}" font-family="{mono}" font-size="{MONO_PX}" fill="{t["muted"]}">'
+      f'B = money, GO/NO-GO, prod deploy, destructive data, legal, scope cut, brand. '
+      f'State lives in git; no one-phase-one-session.</text>')
+
     # ── legend ─────────────────────────────────────────────────────────
     ly = H - 24
     items = [
-        (t["claysoft"], t["clay"], "human gate: the AI stops here"),
-        (t["olivesoft"], t["olive"], "agent spawned, fresh context"),
+        (t["claysoft"], t["clay"], "B gate: the human stops here"),
+        (t["olivesoft"], t["olive"], "agent: fresh ctx, opus/high"),
         (None, t["blue"], "loop-back when a gate fails"),
     ]
     lx = 40
