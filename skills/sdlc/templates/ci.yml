@@ -106,6 +106,11 @@ jobs:
           # The PR head commit (what QA verified), not the synthetic merge commit. A ledger row at an
           # earlier commit still counts when nothing outside docs/ changed since (see check-gate.py).
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Reviews that must exist in docs/reviews/ as *-<name>-*.md (see commands/gate.md). Add
+          # qa-ui for a UI spec and security-reviewer when it ran, e.g.
+          # REQUIRE_REVIEWS: "tech-lead-reviewer qa-logic qa-ui security-reviewer"
+          # The default fails a trivial-track PR, which has no reviews: set REQUIRE_REVIEWS: "" for it.
+          REQUIRE_REVIEWS: "tech-lead-reviewer qa-logic"
         run: |
           if [ -z "$SPEC" ]; then
             plan=$(grep -o 'docs/plans/[^` ]*\.md' docs/status.md | head -1 || true)
@@ -114,8 +119,9 @@ jobs:
             esac
             SPEC=$(grep -o 'docs/specs/[^` ]*\.md' "$plan" | head -1 || true)
           fi
+          req=(); for r in $REQUIRE_REVIEWS; do req+=(--require-review "$r"); done
           python3 scripts/sdlc/check-gate.py --spec "$SPEC" --reports reports/*.json \
-            --ledger docs/qa/ledger.tsv --gates docs/gates.md --reviews docs/reviews --sha "$SHA"
+            --ledger docs/qa/ledger.tsv --gates docs/gates.md --reviews docs/reviews --sha "$SHA" "${req[@]}"
 
   secrets:
     runs-on: ubuntu-latest

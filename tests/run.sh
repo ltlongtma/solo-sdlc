@@ -18,8 +18,10 @@ run_check() { # family dir
   case "$2" in
     spec) python3 $S/check-spec.py "$d/spec.md" ;;
     plan) python3 $S/check-plan.py --spec "$d/spec.md" --no-git "$d/plan.md" ;;
-    gate) python3 $S/check-gate.py --spec "$d/spec.md" --reports "$d"/reports/*.json --ledger "$d/ledger.tsv" \
-            --gates "$d/gates.md" --reviews "$d/reviews" --sha 3f9c2a1b7d4e ;;
+    gate) # optional extra flags in "$d/args"
+          # shellcheck disable=SC2046
+          python3 $S/check-gate.py --spec "$d/spec.md" --reports "$d"/reports/*.json --ledger "$d/ledger.tsv" \
+            --gates "$d/gates.md" --reviews "$d/reviews" --sha 3f9c2a1b7d4e $(cat "$d/args" 2>/dev/null) ;;
   esac
 }
 for fam in spec plan gate; do
@@ -44,6 +46,11 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 mkdir "$tmp/reviews" && cp skills/sdlc/templates/review.md "$tmp/reviews/"
 if gate --ledger "$G/ledger.tsv" --reviews "$tmp/reviews" --sha 3f9c2a1b7d4e >/dev/null; then
   ok gate-template-review; else bad gate-template-review; fi
+
+# --require-review passes when a matching review file in review format exists
+if gate --ledger "$G/ledger.tsv" --reviews "$ROOT/tests/fixtures/gate/bad-missing-required-review/reviews" \
+     --require-review qa-logic --sha 3f9c2a1b7d4e >/dev/null; then
+  ok gate-required-review-present; else bad gate-required-review-present; fi
 
 # --reviews is required
 set +e; gate --ledger "$G/ledger.tsv" --sha 3f9c2a1b7d4e >/dev/null 2>&1; rc=$?; set -e

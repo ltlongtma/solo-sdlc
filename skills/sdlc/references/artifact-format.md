@@ -64,10 +64,26 @@ A `human-B` acceptance A<n> is answered when some gate block lists A<n> in `Bloc
 
 ## Reviews (`docs/reviews/*.md`)
 
-Bucket headings `## Act on`, `## Consider`, `## Noted`, `## Dismissed`. Only lines inside these four
-sections are scanned (preamble and `## Return summary` are prose). A scanned line containing the word
-`blocking` in any case (not `non-blocking`) is unresolved unless it contains the literal token
-`[resolved]`; `RESOLVED` or `resolved` alone does not count. `check-gate --reviews` is required.
+Every review file needs all four bucket headings `## Act on`, `## Consider`, `## Noted`, `## Dismissed`;
+missing any fails the gate ("not in review format") — fail closed. Every `##` section is scanned,
+heading line included, except `## Return summary` (prose for the caller); the preamble before the
+first `##` is not scanned. A scanned line carrying the marker — uppercase `BLOCKING` as a word, or
+`blocking:` with a colon in any case (not `NON-BLOCKING`) — is unresolved unless it contains the
+literal token `[resolved]`; `RESOLVED` or `resolved` alone does not count. Prose such as "no blocking
+issues found" is not a marker. A must-fix line starts with `BLOCKING:` and sits in `## Act on`. Only the reviewer who raised a finding appends `[resolved]`.
+Act on: every `BLOCKING:` line, none dropped or moved for the cap; then up to 5 other items, highest
+value first; the rest go to Consider. Every Dismissed item carries a reason.
+
+Preamble line `Reviewer: <agent> · Scope: <sha> <range / files>`: the first token after `Scope:`
+(7–40 hex, optionally backticked) is the commit reviewed.
+
+`check-gate --reviews` is required. `--require-review NAME` (repeatable) fails the gate unless the
+directory holds at least one `*-NAME-*.md` file in review format, e.g.
+`2026-10-02-tech-lead-reviewer-checkout.md`, whose Scope SHA counts for `--sha` by the ledger rule
+below (prefix match, or resolves in git with no non-docs/ change since). An older review — a plan
+review, an earlier feature — does not count. Reviewers write `docs/reviews/<YYYY-MM-DD>-<agent>-<slug>.md`.
+`product-critic` and `solution-architect` never use the marker: their founder decisions are B items
+in the gates format above.
 
 ## Ledger (`docs/qa/ledger.tsv`)
 

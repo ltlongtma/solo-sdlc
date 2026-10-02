@@ -37,7 +37,7 @@ ln -s "$PWD/solo-sdlc/skills/sdlc" ~/.claude/skills/sdlc
 ln -s "$PWD"/solo-sdlc/agents/*.md ~/.claude/agents/
 ```
 
-Verified with `apm install --target cursor`: all 11 primitives land, the skill at `.agents/skills/sdlc/`, the five agents at `.cursor/agents/`, the five commands at `.cursor/commands/`. What I have *not* verified is whether each harness then surfaces those commands in its own `/` menu, or whether `qa-breaker`'s `model: sonnet` is honored outside Claude Code — worst case it runs on your session model, which is harmless. The skill auto-triggers either way.
+Verified with `apm install --target cursor`: all 12 primitives land, the skill at `.agents/skills/sdlc/`, the six agents at `.cursor/agents/`, the five commands at `.cursor/commands/`. What I have *not* verified is whether each harness then surfaces those commands in its own `/` menu, or whether the agents' `model: opus` / `effort: high` is honored outside Claude Code — worst case they run on your session model, which is harmless. The skill auto-triggers either way.
 
 ## Use it
 
@@ -59,7 +59,7 @@ The `sdlc` skill also auto-triggers on things like *"take this idea to productio
   <img alt="The nine phases: Triage, Validate, Spec, Clarify, Architecture, Plan, Execute, QA/Review, Release, Retro. Phases 0-1 run in scratch with no repo; four phases are human gates; three loop-backs return to an earlier phase when a gate fails." src="docs/pipeline-light.svg" width="100%">
 </picture>
 
-<sub>Phase 6 spawns three agents in parallel: `tech-lead-reviewer`, `qa-breaker`, and `security-reviewer` (the last one only when the diff touches sensitive ground). Regenerate the diagram with `python3 docs/generate-pipeline-svg.py`.</sub>
+<sub>Phase 6 spawns up to four agents in parallel: `tech-lead-reviewer`, `qa-logic`, `qa-ui` (UI specs), and `security-reviewer` (only when the diff touches sensitive ground). Regenerate the diagram with `python3 docs/generate-pipeline-svg.py`.</sub>
 
 | # | Phase | Artifact | Gate |
 |---|---|---|---|
@@ -70,7 +70,7 @@ The `sdlc` skill also auto-triggers on things like *"take this idea to productio
 | 3 | Architecture | ADRs + `docs/design/architecture.html` | **Stack chosen ⛔** |
 | 4 | Plan | `docs/plans/YYYY-MM-DD-*.md` + verified research + task status | **Plan approved ⛔** |
 | 5 | Execute | code on `feat/*`, one commit per task | Every task green |
-| 6 | QA / Review | PR + review notes | CI green, checklist passes, no CRITICAL/HIGH |
+| 6 | QA / Review | PR + `docs/reviews/*` | `check-gate` exits 0 — no sign-off |
 | 7 | Release | tag + `docs/releases/*` + `docs/runbook.md` | **Human ships ⛔** |
 | 8 | Retro | `docs/retro/*` | Lessons written down |
 
@@ -85,18 +85,19 @@ There's an interactive version of this diagram in [`docs/workflow-diagram.html`]
 | `product-critic` | phase 1 | Kill bad ideas cheaply. Market, competitors, unit economics, distribution, risk. Every claim cited; every fatal assumption gets the cheapest possible test. |
 | `solution-architect` | phase 3 | Propose 2–3 stacks with real monthly costs and escape routes. Optimizes for *"can one person fix this at 2am?"* Proposes — never approves. |
 | `tech-lead-reviewer` | phases 4 & 6 | Assume the document is broken and find out how. Dependency order, interface drift, oversized tasks, requirement→task coverage matrix. |
-| `qa-breaker` | phase 6 | Break it before a user does. Edge cases, boundaries, replay, cross-account access, error paths. A bug without a repro doesn't count. |
+| `qa-logic` | phases 4–5 & 6 | Writes the acceptance tests first (`test.fixme('[A<n>] …')`), then breaks the logic: business rules, money math, multi-screen flows, edge cases, replay, cross-account access, error paths. A bug without a repro doesn't count. |
+| `qa-ui` | phase 6, UI specs | Real browser at 360 and 1440 px against the mockup, axe, any console error = FAIL, loading/empty/error states. Appends `live-ui-verified` or `fail` rows to `docs/qa/ledger.tsv`. |
 | `security-reviewer` | phase 6, conditional | Attacker's lens: secrets, IDOR, injection, SSRF, webhook replay, dependency CVEs. CRITICAL/HIGH block the merge. |
 
-All of them report and never edit — fixing belongs to the main session.
+None of them fixes product code — fixes go to a fresh implementer. Each writes only its report (`docs/reviews/`, or `docs/business/` for `product-critic`, plus draft ADRs under `docs/decisions/` for `solution-architect`), `qa-logic`'s acceptance tests, and `qa-ui`'s evidence and ledger rows under `docs/qa/`. That write-path restriction is instruction-level, not enforced: the agents have Write, and nothing in the harness stops a stray file — review the diff.
 
 ## Tuning models and effort
 
 The plugin is deliberately almost neutral here, and the defaults are worth understanding before you change them.
 
-**Models.** Four agents ship as `model: inherit`, so they run on whatever you chose for the session — which is normally the strongest model you have. `qa-breaker` ships as `model: sonnet`: it spends most of its turns running the suite, trying inputs, and tabulating results, and it's the agent you run most often, so it's the one place a cheaper model pays for itself. Nothing is pinned to a full model ID (`claude-opus-5`) — only aliases, so the plugin doesn't rot when a new model lands.
+**Models.** All six agents ship as `model: opus` with `effort: high`: every one of them is a judgment call whose miss is expensive (a bad GO, a wrong stack, a missed BLOCKING finding), and the QA agents are the ones the gate trusts. Nothing is pinned to a full model ID (`claude-opus-5`) — only aliases, so the plugin doesn't rot when a new model lands.
 
-**Effort.** No agent sets `effort`, on purpose. [The default is already `high`](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level) on every model that supports effort, so writing `effort: high` into these files would change nothing. And frontmatter effort *overrides your session level* — pinning `xhigh` here would silently spend more than someone who deliberately ran `/effort medium` asked for. `max` also carries a documented risk of overthinking.
+**Effort.** Every agent sets `effort: high`. [That is already the default](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level) on every model that supports effort, so it mainly pins the reviewers against a lower session level. Frontmatter effort *overrides your session level* — pinning `xhigh` here would silently spend more than someone who deliberately ran `/effort medium` asked for. `max` also carries a documented risk of overthinking.
 
 If you do want to tune it, this is where each dial lives:
 
@@ -107,11 +108,11 @@ If you do want to tune it, this is where each dial lives:
 | The single biggest saving | `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` before phase 5. Execution subagents are spawned by your SDD skill, not by this plugin, so no agent file reaches them — and once tasks satisfy the granularity rules (one test, one commit, 1–3 files) the extra capability buys very little |
 | Cheaper idea scans | Nothing to configure — `find-idea` already tells its scouts to run on a cheap tier where the harness allows it, and keeps clustering and scoring on the session model |
 | Deeper reasoning on the merge-blocking reviewers | Add `effort: xhigh` to `agents/tech-lead-reviewer.md` and `agents/security-reviewer.md`. Defensible: a missed BLOCKING finding costs more than the tokens |
-| Cheaper QA passes | `model: haiku` on `qa-breaker`, or add `effort: medium` |
+| Cheaper QA passes | `model: haiku` on `qa-logic` / `qa-ui`, or add `effort: medium` |
 | One phase deeper than the rest | Set it on your session with `/effort` before that phase — a skill spanning nine phases can't carry one useful effort value |
 | Cap it globally | `CLAUDE_CODE_EFFORT_LEVEL` — takes precedence over frontmatter and the session |
 
-Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, architecture, plan review) are judgment-heavy and where a bad call is expensive to unwind. **0** is split — the scouts that go and read the internet are mechanical, while clustering what they bring back and scoring it is not. **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules. **6** is judgment-heavy again, which is why its reviewers inherit rather than downgrade.
+Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, architecture, plan review) are judgment-heavy and where a bad call is expensive to unwind. **0** is split — the scouts that go and read the internet are mechanical, while clustering what they bring back and scoring it is not. **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules. **6** is judgment-heavy again, which is why its reviewers run on opus at high effort.
 
 ## Design decisions worth knowing about
 

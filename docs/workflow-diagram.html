@@ -232,7 +232,7 @@
   <text class="elbl gl" x="718" y="250" transform="rotate(-90 718 250)" text-anchor="middle">answer Q&#8594;A</text>
   <text class="elbl gl" x="918" y="250" transform="rotate(-90 918 250)" text-anchor="middle">pick the stack (gate)</text>
   <text class="elbl gl" x="1118" y="250" transform="rotate(-90 1118 250)" text-anchor="middle">approve plan (gate)</text>
-  <text class="elbl gl" x="1518" y="250" transform="rotate(-90 1518 250)" text-anchor="middle">sign off</text>
+  <text class="elbl gl" x="1518" y="250" transform="rotate(-90 1518 250)" text-anchor="middle">B items only</text>
   <text class="elbl gl" x="1718" y="250" transform="rotate(-90 1718 250)" text-anchor="middle">ship it (gate)</text>
   <text class="elbl gl" x="1918" y="250" transform="rotate(-90 1918 250)" text-anchor="middle">retro together</text>
 
@@ -343,9 +343,9 @@
     <text class="t" x="1455" y="434">QA / Review</text>
     <text class="m" x="1455" y="458">PR + review notes</text>
     <text class="m" x="1455" y="474">+ ADR if it diverges</text>
-    <text class="m" x="1455" y="498">CI green · checklist pass</text>
+    <text class="m" x="1455" y="498">check-gate exit 0</text>
     <text class="m" x="1455" y="514">0 CRITICAL/HIGH</text>
-    <text class="m" x="1455" y="536">human signs off</text>
+    <text class="m" x="1455" y="536">no sign-off · B items only</text>
   </g>
   <g class="node gate" data-k="p7">
     <rect x="1640" y="390" width="180" height="160"/>
@@ -382,7 +382,7 @@
     <text class="ka" x="252" y="798">attacks the business</text>
     <text class="m" x="252" y="820">kills bad ideas early</text>
     <text class="m" x="252" y="836">every claim cited</text>
-    <text class="m" x="252" y="860">model: inherit</text>
+    <text class="m" x="252" y="860">opus · high</text>
   </g>
   <g class="node agent" data-k="sa">
     <rect x="835" y="750" width="195" height="130"/>
@@ -390,7 +390,7 @@
     <text class="ka" x="852" y="798">proposes, never approves</text>
     <text class="m" x="852" y="820">options + trade-offs</text>
     <text class="m" x="852" y="836">+ draft ADRs + spikes</text>
-    <text class="m" x="852" y="860">model: inherit</text>
+    <text class="m" x="852" y="860">opus · high</text>
   </g>
   <g class="node agent" data-k="tlr">
     <rect x="1130" y="750" width="200" height="130"/>
@@ -398,15 +398,15 @@
     <text class="ka" x="1147" y="798">attacks plan + PR</text>
     <text class="m" x="1147" y="820">BLOCKING / NON-BLOCK</text>
     <text class="m" x="1147" y="836">requirement&#8594;task matrix</text>
-    <text class="m" x="1147" y="860">model: inherit</text>
+    <text class="m" x="1147" y="860">opus · high</text>
   </g>
   <g class="node agent" data-k="qa">
     <rect x="1450" y="750" width="190" height="130"/>
-    <text class="t" x="1467" y="778">qa-breaker</text>
+    <text class="t" x="1467" y="778">qa-logic · qa-ui</text>
     <text class="ka" x="1467" y="798">mandate: break it</text>
-    <text class="m" x="1467" y="820">edge cases · auth · replay</text>
-    <text class="m" x="1467" y="836">scores the checklist</text>
-    <text class="m" x="1467" y="860">model: sonnet</text>
+    <text class="m" x="1467" y="820">tests first · logic · UI</text>
+    <text class="m" x="1467" y="836">360/1440 · axe · ledger</text>
+    <text class="m" x="1467" y="860">opus · high</text>
   </g>
   <g class="node agent opt" data-k="sec">
     <rect x="1660" y="750" width="190" height="130"/>
@@ -414,7 +414,7 @@
     <text class="ka" x="1677" y="798">attacker's lens</text>
     <text class="m" x="1677" y="820">when sensitive ground</text>
     <text class="m" x="1677" y="836">CRIT/HIGH block merge</text>
-    <text class="m" x="1677" y="860">model: inherit</text>
+    <text class="m" x="1677" y="860">opus · high</text>
   </g>
 </g>
 </svg>
@@ -442,22 +442,22 @@
 </div>
 <script>
 const DETAIL = {
-  ceo: { t:"Founder — you", m:"owns every gate", b:"The AI does most of the work; the human is the <b>value gate</b>: pick the track, GO/NO-GO, agree the spec, pick the stack, approve the plan, sign off QA, ship. The AI <b>STOPS</b> at a gate and never walks through one alone. Work only a human can do (accounts, billing, pricing, legal, go-live) goes into the backlog early so it never blocks you at the last minute." },
+  ceo: { t:"Founder — you", m:"owns every gate", b:"The AI does most of the work; the human is the <b>value gate</b>: pick the track, GO/NO-GO, agree the spec, pick the stack, approve the plan, answer B items in docs/gates.md, ship. The AI <b>STOPS</b> at a gate and never walks through one alone. Work only a human can do (accounts, billing, pricing, legal, go-live) goes into the backlog early so it never blocks you at the last minute." },
   p0:  { t:"Phase 0 — Triage / Idea", m:"owner: human · artifact: docs/backlog.md", b:"Every idea lands in the backlog first. No idea yet → explore with <code>superpowers:brainstorming</code>. Exit gate: is it worth doing, and which of the four rigor tracks applies (trivial / feature / high-risk / new product)." },
   p1:  { t:"Phase 1 — Validate", m:"new-product track only · human gate", b:"The <code>product-critic</code> agent attacks it: market demand, competitor table, pricing and unit economics (LLM/hosting cost per user), ROI against solo person-weeks, where the first customers come from, risks and incidents. Verdict is <b>GO / CONDITIONAL-GO / NO-GO</b> — every fatal assumption needs the cheapest possible test. <b>Phases 0–1 run in scratch; NO git init yet</b> — a repo is the artifact of deciding to BUILD. NO-GO → no repo, the idea stays one line in the backlog, no regrets. <b>GO → now create the repo</b> and move the validation into <code>docs/business/</code> as the first commit." },
-  p2:  { t:"Phase 2 — Spec", m:"AI proposes → human decides", b:"Produces <code>docs/specs/&lt;feature&gt;.md</code> with an <b>Acceptance checklist</b> — every requirement measurable and checkable (\"unit tests for prose\"; <code>qa-breaker</code> scores it again at phase 6). Trade-offs written down. Driven by <code>superpowers:brainstorming</code> at the solution level: this is WHAT, not yet HOW." },
+  p2:  { t:"Phase 2 — Spec", m:"AI proposes → human decides", b:"Produces <code>docs/specs/&lt;feature&gt;.md</code> with an <b>Acceptance checklist</b> — every requirement measurable and checkable (\"unit tests for prose\"; <code>qa-logic</code> turns it into <code>[A&lt;n&gt;]</code> tests before implementation). Trade-offs written down. Driven by <code>superpowers:brainstorming</code> at the solution level: this is WHAT, not yet HOW." },
   p25: { t:"Phase 2.5 — Clarify", m:"AI asks → human answers", b:"Sweep the spec for ambiguity and gaps, then ask <b>one question at a time</b>. Answers are <b>COMMITTED into the spec's Clarifications section</b>, never left in chat — the next session cannot read this conversation. Exit gate: nothing ambiguous is still blocking the plan." },
   p3:  { t:"Phase 3 — Architecture", m:"new product / structural change · human gate", b:"HOW — inputs are the spec (WHAT) plus business constraints from validation. The <code>solution-architect</code> agent returns 2–3 stack options with trade-offs, monthly cost, one-person operability, lock-in, and draft ADRs. Once decided, commit the ADR to <code>docs/decisions/</code>. <b>Then the human types <code>/html-diagram</code></b> to generate <code>docs/design/architecture.html</code> from the high-level design (that skill blocks model invocation, so the AI can't run it). If the architecture breaks the spec (infeasible or too expensive) → <b>go back and fix the spec + ADR</b>, never drift silently. The architect proposes and is not the reviewer: the resulting plan still goes through tech-lead-reviewer." },
   p4:  { t:"Phase 4 — Plan", m:"human gate: approval required", b:"<code>docs/plans/YYYY-MM-DD-&lt;feature&gt;.md</code> with a <b>Verified research</b> section (version/API/library facts plus cited sources — never trust recall). Code, commands, and a verification step per task. <b>Task granularity — four criteria:</b> one concrete red→green test · committable alone with the repo still green · doable by a fresh-context subagent from the plan plus 1–3 named files · no dependency on unfinished work. Oversized tasks are the number-one reason subagents fail and burn the retry budget. The plan also carries a <b>Task status</b> section — <code>- [x] Task N — name — commit hash</code>, the cross-session source of truth (the <code>.superpowers/sdd/</code> ledger is git-ignored and dies with <code>git clean -fdx</code>). A ticked box with no hash counts as not done. Requires at least one review round by <code>tech-lead-reviewer</code> with a requirement→task coverage matrix; fix every BLOCKING finding before presenting." },
   p5:  { t:"Phase 5 — Execute", m:"owner: AI · has a ceiling", b:"Branch <code>feat/*</code>, never straight to main; several subagents in parallel get their own worktree (<code>superpowers:using-git-worktrees</code>) so they don't collide. Per task: test red → green → commit. <b>No product code before the plan is approved</b> — before the phase 4 gate you may only write artifacts, read code, and spike in scratch (never committed to source). <b>Two-tier retry ceiling</b> (a backstop; the real signal is LACK of progress, not a count): <b>tier 1 — 3 attempts at the same failure</b> (missing it three times means you don't understand the cause → CHANGE approach: re-read the spec/plan, add logging, shrink the repro); <b>tier 2 — 5 attempts per task</b>, each one a NEW failure. Out of attempts or the failure repeats → STOP, revert to the last green commit, report what fails and what you suspect. Subagents get both ceilings in their prompt and never raise them. Stop earlier if fixing A breaks B or you must edit files outside the task's scope." },
-  p6:  { t:"Phase 6 — QA / Review", m:"AI runs → human signs off", b:"Spawn <b>in parallel</b>: <code>tech-lead-reviewer</code> (code/PR), <code>qa-breaker</code> (break it, score the Acceptance checklist), and <code>security-reviewer</code> when the diff touches auth/schema/money/user input/external URLs/public endpoints. Exit gate: CI green + reviews confirmed + checklist passing + <b>zero CRITICAL/HIGH</b> + every divergence covered by an ADR." },
+  p6:  { t:"Phase 6 — QA / Review", m:"AI runs → check-gate exit 0", b:"Spawn <b>in parallel</b>: <code>tech-lead-reviewer</code> (code/PR), <code>qa-logic</code> (break the logic, score the Acceptance checklist), <code>qa-ui</code> for UI specs (live browser, ledger rows), and <code>security-reviewer</code> when the diff touches auth/schema/money/user input/external URLs/public endpoints. Fixes go to a fresh implementer. Exit gate: <b><code>check-gate</code> exits 0</b> (tests, ledger, required reviews, no unresolved BLOCKING, so <b>zero CRITICAL/HIGH</b>) + every divergence covered by an ADR. No sign-off; only B items stop for the human." },
   p7:  { t:"Phase 7 — Release", m:"human gate: you ship it", b:"Drive with <code>/ship</code> or <code>/land-and-deploy</code> if installed. Exit gate: post-deploy smoke test + rollback plan + an <b>incident runbook</b> at <code>docs/runbook.md</code> (grown from validation's risk section plus what deploying actually taught you) + the architecture diagram updated if the structure changed. On the new-product track, surface the human-only go-to-market items: final pricing, the channel for the first customers, the landing page." },
   p8:  { t:"Phase 8 — Retro", m:"human + AI · closes the loop", b:"Write lessons into <code>docs/retro/*</code>, update the backlog, and change WORKFLOW.md if the process itself needs to change. <b>Feeds the backlog → the next round starts at phase 0.</b> Hit the \"Loop-backs\" chip to see every backward path." },
-  pc:  { t:"product-critic", m:"agent · phase 1 · model: inherit · report-only", b:"Mandate: <b>kill bad ideas</b> before they eat months of work. Eight areas: problem and customer, real market demand, competitors and substitutes, pricing and unit economics, ROI against effort, distribution (no viable channel is the biggest red flag of all), risks and incidents, and the solo+AI advantage. Every market, competitor, and pricing claim must be sourced; numbers must show their arithmetic. Optional baseline: <code>minimalist-entrepreneur:validate-idea</code> / <code>pricing</code>, or a YC-style office-hours skill." },
-  sa:  { t:"solution-architect", m:"agent · phase 3 · model: inherit · report-only", b:"PROPOSES, never approves. 2–3 architecture/stack options — each with upsides, downsides, monthly cost (with arithmetic), one-person operability, lock-in, and an escape route. Defaults to boring proven tech plus managed services; anything \"hot\" justifies itself twice as hard. Outputs a high-level design (the input for architecture.html), draft ADRs, and the spikes worth running. Core test: <i>\"can one person fix this at 2am?\"</i>" },
-  tlr: { t:"tech-lead-reviewer", m:"agent · phases 4 + 6 · model: inherit · report-only", b:"Adversarial, not the author — assumes the document or code HAS defects. Audits: dependency order, interfaces matching across tasks, placeholders, <b>task granularity</b> (with a concrete split proposal when a task is too big), YAGNI, the <b>requirement→task coverage matrix</b> (a requirement with no task is BLOCKING), risky migrations, and technical claims (verify and cite). If tests or a build exist, it runs them and trusts the real result over the description. Spawned AUTOMATICALLY at the phase 4 gate (plan) and phase 6 (PR)." },
-  qa:  { t:"qa-breaker", m:"agent · phase 6 · model: sonnet · never edits code", b:"Mandate: BREAK it — make the feature fail before a real user does. Runs the full suite and build first, then attacks: empty/huge/unicode/non-ASCII input and basic injection, boundaries ±1, idempotency/replay/concurrency, user A reading user B's data, dead dependencies. Scores every line of the spec's <b>Acceptance checklist</b>. A bug without repro steps doesn't count. Runs on sonnet — the work is mostly running commands and trying inputs, so it's cheaper." },
-  sec: { t:"security-reviewer", m:"agent · phase 6, conditional · model: inherit", b:"Attacker's lens: \"if I were malicious, what could I take?\" Nine areas: secrets, authentication, IDOR/multi-tenancy, injection, SSRF, money and webhooks, abuse and rate limiting, leaks through errors and logs, dependency audit. Spawned when the diff touches auth/schema/money/user input/external URLs/public endpoints; <b>always</b> on the high-risk and new-product tracks. Unresolved CRITICAL/HIGH means the gate is not passed. Dashed border = conditional." },
+  pc:  { t:"product-critic", m:"agent · phase 1 · model: opus · effort: high · writes docs/business", b:"Mandate: <b>kill bad ideas</b> before they eat months of work. Eight areas: problem and customer, real market demand, competitors and substitutes, pricing and unit economics, ROI against effort, distribution (no viable channel is the biggest red flag of all), risks and incidents, and the solo+AI advantage. Every market, competitor, and pricing claim must be sourced; numbers must show their arithmetic. Optional baseline: <code>minimalist-entrepreneur:validate-idea</code> / <code>pricing</code>, or a YC-style office-hours skill." },
+  sa:  { t:"solution-architect", m:"agent · phase 3 · model: opus · effort: high · writes docs/reviews", b:"PROPOSES, never approves. 2–3 architecture/stack options — each with upsides, downsides, monthly cost (with arithmetic), one-person operability, lock-in, and an escape route. Defaults to boring proven tech plus managed services; anything \"hot\" justifies itself twice as hard. Outputs a high-level design (the input for architecture.html), draft ADRs, and the spikes worth running. Core test: <i>\"can one person fix this at 2am?\"</i>" },
+  tlr: { t:"tech-lead-reviewer", m:"agent · phases 4 + 6 · model: opus · effort: high · writes docs/reviews", b:"Adversarial, not the author — assumes the document or code HAS defects. Audits: dependency order, interfaces matching across tasks, placeholders, <b>task granularity</b> (with a concrete split proposal when a task is too big), YAGNI, the <b>requirement→task coverage matrix</b> (a requirement with no task is BLOCKING), risky migrations, and technical claims (verify and cite). If tests or a build exist, it runs them and trusts the real result over the description. Spawned AUTOMATICALLY at the phase 4 gate (plan) and phase 6 (PR)." },
+  qa:  { t:"qa-logic · qa-ui", m:"agents · phases 4–6 · model: opus · effort: high · never edit product code", b:"<b>qa-logic</b> writes one <code>test.fixme('[A&lt;n&gt;] …')</code> per acceptance line BEFORE implementation and never weakens one to make it pass. Mandate: BREAK it — make the feature fail before a real user does. Runs the full suite and build first, then attacks business rules, money math, multi-screen flows, empty/huge/unicode/non-ASCII input and basic injection, boundaries ±1, idempotency/replay/concurrency, user A reading user B's data, dead dependencies. Scores every line of the spec's <b>Acceptance checklist</b>. <b>qa-ui</b> drives a real browser at 360 and 1440 px against the mockup, runs axe, fails on any console error, checks loading/empty/error states, and appends <code>live-ui-verified</code>/<code>fail</code> rows to <code>docs/qa/ledger.tsv</code>. A bug without repro steps doesn't count. Runs on opus at high effort, like every reviewer agent." },
+  sec: { t:"security-reviewer", m:"agent · phase 6, conditional · model: opus · effort: high", b:"Attacker's lens: \"if I were malicious, what could I take?\" Nine areas: secrets, authentication, IDOR/multi-tenancy, injection, SSRF, money and webhooks, abuse and rate limiting, leaks through errors and logs, dependency audit. Spawned when the diff touches auth/schema/money/user input/external URLs/public endpoints; <b>always</b> on the high-risk and new-product tracks. Unresolved CRITICAL/HIGH means the gate is not passed. Dashed border = conditional." },
 };
 
 const FLOWS = {
@@ -465,7 +465,7 @@ const FLOWS = {
     name: "New product / big bet — all nine phases",
     edges: ["e01","e12","e225","e253","e34","e45","e56","e67","e78","a-pc","a-sa","a-tl4","a-tl6","a-qa","a-sec"],
     nodes: ["p0","p1","p2","p25","p3","p4","p5","p6","p7","p8","pc","sa","tlr","qa","sec","ceo"],
-    steps: ["Phases 0–1 run in scratch — NO repo yet","Idea into the backlog → <code>product-critic</code> attacks it → you decide GO/NO-GO","<b>GO → now git init</b> + scaffold + commit the validation (NO-GO means no repo, no regrets)","Spec + Clarify committed into the spec → <code>solution-architect</code> presents options → you pick the stack","Plan + tech-lead review → you approve → execute test-first","QA with three agents in parallel → sign off → release + runbook + GTM → retro"]
+    steps: ["Phases 0–1 run in scratch — NO repo yet","Idea into the backlog → <code>product-critic</code> attacks it → you decide GO/NO-GO","<b>GO → now git init</b> + scaffold + commit the validation (NO-GO means no repo, no regrets)","Spec + Clarify committed into the spec → <code>solution-architect</code> presents options → you pick the stack","Plan + tech-lead review → you approve → execute test-first","QA agents in parallel → check-gate exit 0 → release + runbook + GTM → retro"]
   },
   risky: {
     name: "Subsystem / high risk — schema, money, auth, migrations",
@@ -477,7 +477,7 @@ const FLOWS = {
     name: "Feature — one screen / endpoint in an existing product",
     edges: ["s02","e225","s254","e45","e56","e67","e78","a-tl4","a-tl6","a-qa"],
     nodes: ["p0","p2","p25","p4","p5","p6","p7","p8","tlr","qa","ceo"],
-    steps: ["Skip Validate; skip Architecture when nothing structural changes","Spec + Clarify → one plan file, one review round","Execute → QA (tech-lead + qa-breaker; security if the diff touches sensitive ground) → release → retro"]
+    steps: ["Skip Validate; skip Architecture when nothing structural changes","Spec + Clarify → one plan file, one review round","Execute → QA (tech-lead + qa-logic/qa-ui; security if the diff touches sensitive ground) → release → retro"]
   },
   trivial: {
     name: "Trivial — typo, one line, config",
@@ -495,7 +495,7 @@ const FLOWS = {
     name: "Agent spawns — the AI spawns these itself",
     edges: ["a-pc","a-sa","a-tl4","a-tl6","a-qa","a-sec"],
     nodes: ["pc","sa","tlr","qa","sec","p1","p3","p4","p6"],
-    steps: ["Phase 1: <code>product-critic</code> — the verdict is relayed verbatim, a NO-GO is never softened","Phase 3: <code>solution-architect</code> — proposes; the human decides","Phase 4: <code>tech-lead-reviewer</code> audits the plan — fix every BLOCKING finding before presenting it","Phase 6: <code>tech-lead-reviewer</code> + <code>qa-breaker</code> in parallel; <code>security-reviewer</code> when the diff touches sensitive ground","The principle: the author never grades their own work — reviewers are fresh context"]
+    steps: ["Phase 1: <code>product-critic</code> — the verdict is relayed verbatim, a NO-GO is never softened","Phase 3: <code>solution-architect</code> — proposes; the human decides","Phase 4: <code>tech-lead-reviewer</code> audits the plan — fix every BLOCKING finding before presenting it","Phase 6: <code>tech-lead-reviewer</code> + <code>qa-logic</code> + <code>qa-ui</code> in parallel; <code>security-reviewer</code> when the diff touches sensitive ground","The principle: the author never grades their own work — reviewers are fresh context"]
   }
 };
 
