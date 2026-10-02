@@ -34,20 +34,55 @@ for fam in spec plan gate; do
   done
 done
 
-# 3. scaffold idempotency
+# 3. gate cases that a fixture directory cannot express
+G=tests/fixtures/gate/good
+gate() { python3 "$ROOT/$S/check-gate.py" --spec "$ROOT/$G/spec.md" --reports "$ROOT/$G"/reports/*.json \
+           --gates "$ROOT/$G/gates.md" "$@"; }
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-snap() { (cd "$tmp" && find . -path ./.git -prune -o -print | sort); }
-git init -q "$tmp"
-if bash skills/sdlc/scaffold.sh "$tmp" >/dev/null 2>&1; then
-  a="$(snap)"; ha="$(git -C "$tmp" config core.hooksPath || true)"
-  bash skills/sdlc/scaffold.sh "$tmp" >/dev/null 2>&1 || true
-  b="$(snap)"; hb="$(git -C "$tmp" config core.hooksPath || true)"
-  if [ "$a" = "$b" ] && [ "$ha" = "$hb" ]; then ok scaffold-idempotent; else bad scaffold-idempotent; fi
+
+# a review copied from the template, with no findings, passes
+mkdir "$tmp/reviews" && cp skills/sdlc/templates/review.md "$tmp/reviews/"
+if gate --ledger "$G/ledger.tsv" --reviews "$tmp/reviews" --sha 3f9c2a1b7d4e >/dev/null; then
+  ok gate-template-review; else bad gate-template-review; fi
+
+# --reviews is required
+set +e; gate --ledger "$G/ledger.tsv" --sha 3f9c2a1b7d4e >/dev/null 2>&1; rc=$?; set -e
+[ "$rc" -eq 2 ] && ok gate-reviews-required || bad "gate-reviews-required (exit $rc)"
+
+# ledger row at an earlier SHA counts only while nothing outside docs/ changed since
+r="$tmp/shas"; git init -q "$r"
+c() { mkdir -p "$r/$(dirname "$1")"; echo "$RANDOM" >> "$r/$1"; git -C "$r" add -A
+      git -C "$r" -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm "$1"
+      git -C "$r" rev-parse HEAD; }
+s1="$(c src/app.txt)"; s2="$(c docs/notes.md)"; s3="$(c src/app.txt)"
+printf 'acceptance_id\tsha\tverdict\nA1\t%s\tlive-ui-verified\n' "$s1" > "$tmp/ledger.tsv"
+lg() { (cd "$r" && gate --ledger "$tmp/ledger.tsv" --reviews "$ROOT/$G/reviews" --sha "$1"); }
+if lg "$s2" >/dev/null; then ok gate-sha-docs-only-change; else bad gate-sha-docs-only-change; fi
+set +e; out="$(lg "$s3")"; rc=$?; set -e
+if [ "$rc" -eq 1 ] && grep -q "A1 (UI) has no live-ui-verified" <<<"$out"; then ok gate-sha-code-change
+else bad "gate-sha-code-change (exit $rc)"; fi
+
+# 4. scaffold idempotency
+s="$tmp/scaffold"; git init -q "$s"
+snap() { (cd "$s" && find . -path ./.git -prune -o -print && find . -path ./.git -prune -o -type f -exec shasum {} +) | sort; }
+if bash skills/sdlc/scaffold.sh "$s" >/dev/null 2>&1; then
+  a="$(snap)"; ha="$(git -C "$s" config core.hooksPath || true)"
+  if bash skills/sdlc/scaffold.sh "$s" >/dev/null 2>&1; then
+    b="$(snap)"; hb="$(git -C "$s" config core.hooksPath || true)"
+    if [ "$a" = "$b" ] && [ "$ha" = "$hb" ]; then ok scaffold-idempotent; else bad scaffold-idempotent; fi
+  else
+    bad "scaffold-idempotent (second run failed)"
+  fi
 else
   bad "scaffold-idempotent (first run failed)"
 fi
 
-# 4. version sync
+# scaffold leaves a custom core.hooksPath alone
+h="$tmp/hooks"; git init -q "$h"; git -C "$h" config core.hooksPath custom-hooks
+bash skills/sdlc/scaffold.sh "$h" >/dev/null 2>&1 || true
+[ "$(git -C "$h" config core.hooksPath)" = custom-hooks ] && ok scaffold-keeps-hookspath || bad scaffold-keeps-hookspath
+
+# 5. version sync
 vers="$(python3 - <<'PY'
 import json, re
 p = json.load(open(".claude-plugin/plugin.json"))["version"]

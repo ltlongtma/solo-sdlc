@@ -91,7 +91,7 @@ if spec_lines is not None:
             v = m[2].strip().strip("`").lower()
             ui |= (v == "yes") if m[1] == "UI" else v not in ("", "none") and not v.startswith("<")
     for i, l in section(spec_lines, "Acceptance"):
-        m = re.match(r"\s*- \[[ xX]\] \*\*(A\d+)\*\*", l)
+        m = re.match(r"\s*-\s*\[[ xX]\]", l) and re.search(r"\*\*(A\d+)\*\*", l)
         if m:
             aids.append(m[1])
 

@@ -34,8 +34,18 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
+      # Stack-specific. Unit + integration tests with a Vitest JSON report the gate reads; tests prove
+      # an acceptance item by carrying "[A<n>]" in their title. Another runner must emit the same
+      # (Jest-compatible) JSON to reports/vitest.json.
+      - name: Test (unit + integration)
+        run: |
+          mkdir -p reports
+          pnpm exec vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-unit
+          path: reports/
 
       - name: Build
         run: pnpm build
@@ -57,38 +67,55 @@ jobs:
       # - run: pnpm exec playwright install --with-deps
       # - run: pnpm exec playwright test --reporter=json > reports/playwright.json
       #   (create reports/ first: mkdir -p reports)
+      # The `{}` placeholder is not a Playwright report, so the gate stays red until the real e2e
+      # step above is enabled. That is intended: the gate fails closed.
       - name: Placeholder report (delete once the real e2e step above is enabled)
         run: mkdir -p reports && echo '{}' > reports/playwright.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reports
+          name: reports-e2e
           path: reports/
 
   # Make `gate` a REQUIRED status check in branch protection (Settings > Branches > main), or the
   # contract layer is advisory only.
   gate:
     needs: [verify, e2e]
+    # Run even when a needed job fails or is skipped: a skipped required check counts as passed on
+    # GitHub, so the gate must run and fail itself instead.
+    if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Needed jobs succeeded
+        run: |
+          echo "verify=${{ needs.verify.result }} e2e=${{ needs.e2e.result }}"
+          [ "${{ needs.verify.result }}" = success ] && [ "${{ needs.e2e.result }}" = success ]
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # check-gate diffs ledger SHAs against the head commit
       - uses: actions/download-artifact@v4
         with:
-          name: reports
+          pattern: reports-*
+          merge-multiple: true
           path: reports/
       - name: Contract gate
         env:
           # Active spec: set SPEC here to pin one; otherwise it is read from the plan named in
           # docs/status.md (its `Feature / plan` line), then that plan's `Spec` line.
           SPEC: ""
+          # The PR head commit (what QA verified), not the synthetic merge commit. A ledger row at an
+          # earlier commit still counts when nothing outside docs/ changed since (see check-gate.py).
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           if [ -z "$SPEC" ]; then
-            plan=$(grep -o 'docs/plans/[^` ]*\.md' docs/status.md | head -1)
-            SPEC=$(grep -o 'docs/specs/[^` ]*\.md' "$plan" | head -1)
+            plan=$(grep -o 'docs/plans/[^` ]*\.md' docs/status.md | head -1 || true)
+            case "$plan" in ""|*"<"*)
+              echo "gate: no active feature in docs/status.md — set SPEC or update status"; exit 1 ;;
+            esac
+            SPEC=$(grep -o 'docs/specs/[^` ]*\.md' "$plan" | head -1 || true)
           fi
-          python3 scripts/sdlc/check-gate.py --spec "$SPEC" --reports reports/playwright.json \
-            --ledger docs/qa/ledger.tsv --gates docs/gates.md --reviews docs/reviews \
-            --sha ${{ github.sha }}
+          python3 scripts/sdlc/check-gate.py --spec "$SPEC" --reports reports/*.json \
+            --ledger docs/qa/ledger.tsv --gates docs/gates.md --reviews docs/reviews --sha "$SHA"
 
   secrets:
     runs-on: ubuntu-latest

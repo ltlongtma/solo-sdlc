@@ -68,6 +68,8 @@ def check(path):
         seen = {}
         for n, t in acc[1]:
             if not re.match(r"\s*-\s*\[[ xX]\]", t):
+                if re.search(r"\*\*A\d+\*\*", t):
+                    errs.append((n, "acceptance id on a non-checkbox line (use '- [ ]' or '- [x]')"))
                 continue
             m = re.search(r"\*\*(A\d+)\*\*", t)
             if not m:

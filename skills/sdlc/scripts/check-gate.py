@@ -2,13 +2,15 @@
 """check-gate: the QA gate. Exit 0 only when every gate condition holds.
 
 Conditions (all must hold):
-  1. every A<n> verified by e2e|integration|unit has >=1 passing test whose title
-     contains "[A<n>]", and no test carrying "[A<n>]" is failed, skipped, fixme,
-     pending or todo;
+  1. every A<n> verified by e2e has >=1 passing Playwright test, and every A<n>
+     verified by integration|unit has >=1 passing Vitest test, whose title contains
+     "[A<n>]"; no test carrying "[A<n>]" is failed, skipped, fixme, pending or todo;
+     a Vitest report with success=false or any test file not "passed" fails;
   2. every human-B A<n> is answered in the gates file;
-  3. no unresolved BLOCKING line in any reviews/*.md;
-  4. UI spec: every UI A<n> (Verify by: e2e) has a ledger row at --sha whose
-     verdict is live-ui-verified.
+  3. no unresolved blocking finding in the bucket sections of any reviews/*.md;
+  4. UI spec: every UI A<n> (Verify by: e2e) has a ledger row whose verdict is
+     live-ui-verified at a SHA that counts for --sha: same commit (prefix match,
+     >=7 chars), or an earlier commit with no non-docs/ change since then.
 
 Report formats are auto-detected per file:
   Playwright JSON reporter: top-level "config" + "suites"
@@ -18,16 +20,20 @@ Any missing or unreadable input that a condition needs is a failure, never a ski
 Output: one "path:line: problem" per failure, then "gate: PASS" or "gate: FAIL (<n> problems)".
 """
 import argparse
+import functools
 import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 VERIFY_RE = re.compile(r"Verify by:\s*(e2e|integration|unit|human-B)\b")
 AID_RE = re.compile(r"\*\*(A\d+)\*\*")
 PLACEHOLDER_RE = re.compile(r"<[^>]*>")
 TESTED_KINDS = ("e2e", "integration", "unit")
+UNANSWERED = ("", "tbd", "-", "?")
+BUCKETS = ("act on", "consider", "noted", "dismissed")
 
 problems = []
 
@@ -87,6 +93,8 @@ def parse_spec(path):
         found_section = True
         for n, line in body:
             if not re.match(r"\s*-\s*\[[ xX]\]", line):
+                if AID_RE.search(line):
+                    problem(path, n, "acceptance id on a non-checkbox line (use '- [ ]' or '- [x]')")
                 continue
             aid, kind = AID_RE.search(line), VERIFY_RE.findall(line)
             if not aid or len(kind) != 1:
@@ -132,11 +140,13 @@ def playwright_outcome(t):
 
 
 def vitest_tests(report, path):
+    if report.get("success") is not True:
+        problem(path, 0, "Vitest run did not succeed (success is not true)")
     for f in report["testResults"]:
         where = f.get("name", "?")
         asserts = f.get("assertionResults") or []
-        if f.get("status") == "failed" and not asserts:
-            problem(path, 0, f"test file failed with no results: {where}: {(f.get('message') or '').strip()[:200]}")
+        if f.get("status") != "passed":
+            problem(path, 0, f"test file {where} is {f.get('status')}: {(f.get('message') or '').strip()[:200]}")
         for a in asserts:
             status = a.get("status")
             outcome = status if status in ("passed", "failed") else (status or "unknown")
@@ -144,7 +154,7 @@ def vitest_tests(report, path):
 
 
 def load_tests(paths):
-    tests = []  # (title, outcome, report_path, where)
+    tests = []  # (title, outcome, report_path, where, runner)
     for path in paths:
         try:
             with open(path, encoding="utf-8") as f:
@@ -159,13 +169,13 @@ def load_tests(paths):
             for err in report.get("errors") or []:
                 msg = err.get("message", "") if isinstance(err, dict) else str(err)
                 problem(path, 0, f"Playwright run error: {msg.strip()[:200]}")
-            found = playwright_tests(report)
+            found, runner = playwright_tests(report), "Playwright"
         elif isinstance(report, dict) and isinstance(report.get("testResults"), list):
-            found = vitest_tests(report, path)
+            found, runner = vitest_tests(report, path), "Vitest"
         else:
             problem(path, 0, "unrecognized report format (expected Playwright or Vitest JSON reporter output)")
             continue
-        tests += [(title, outcome, path, where) for title, outcome, where in found]
+        tests += [(title, outcome, path, where, runner) for title, outcome, where in found]
     return tests
 
 
@@ -174,12 +184,13 @@ def check_tests(spec_path, items, tests):
         if kind not in TESTED_KINDS:
             continue
         tag = f"[{aid}]"
+        runner = "Playwright" if kind == "e2e" else "Vitest"
         mine = [t for t in tests if tag in t[0]]
-        for title, outcome, rpath, where in mine:
+        for title, outcome, rpath, where, _ in mine:
             if outcome != "passed":
                 problem(rpath, 0, f"{aid}: test '{title}' ({where}) is {outcome}")
-        if not any(t[1] == "passed" for t in mine):
-            problem(spec_path, n, f"{aid} (Verify by: {kind}) has no passing test titled with '{tag}'")
+        if not any(t[1] == "passed" and t[4] == runner for t in mine):
+            problem(spec_path, n, f"{aid} (Verify by: {kind}) has no passing test titled with '{tag}' in a {runner} report")
 
 
 # ---------- gates ----------
@@ -194,17 +205,18 @@ def check_gates(spec_path, items, gates_path):
     lines = read_lines(gates_path, "gates file")
     if lines is None:
         return
-    answered = set()
-    for _, body in sections(lines):
-        blocks, answer = set(), ""
-        for _, line in body:
-            m = re.match(r"\s*-\s*\*\*(Blocks|Answer):\*\*\s*(.*)$", line, re.I)
-            if m and m.group(1).lower() == "blocks":
-                blocks |= set(re.findall(r"\bA\d+\b", m.group(2)))
-            elif m:
-                answer = m.group(2).strip()
-        if answer and not PLACEHOLDER_RE.search(answer):
-            answered |= blocks
+    answered, blocks, answer = set(), set(), ""
+    for line in lines + ["## end"]:
+        if re.match(r"#{2,} ", line):  # every ##/### heading starts a new gate block
+            if answer.lower() not in UNANSWERED and not PLACEHOLDER_RE.search(answer):
+                answered |= blocks
+            blocks, answer = set(), ""
+            continue
+        m = re.match(r"\s*-\s*\*\*(Blocks|Answer):\*\*\s*(.*)$", line, re.I)
+        if m and m.group(1).lower() == "blocks":
+            blocks |= set(re.findall(r"\bA\d+\b", m.group(2)))
+        elif m:
+            answer = m.group(2).strip()
     for aid, n in human:
         if aid not in answered:
             problem(spec_path, n, f"{aid} (human-B) is not answered in {gates_path}")
@@ -213,26 +225,34 @@ def check_gates(spec_path, items, gates_path):
 # ---------- reviews ----------
 
 def check_reviews(reviews_dir):
-    if not reviews_dir:
-        print("--reviews:0: warning: not given; review findings not checked")
-        return
     if not os.path.isdir(reviews_dir):
         problem(reviews_dir, 0, "reviews directory not found")
         return
     for path in sorted(glob.glob(os.path.join(reviews_dir, "*.md"))):
         lines = read_lines(path, "review")
-        for n, line in enumerate(lines or [], 1):
-            # "NON-BLOCKING" is not a blocker; "UNRESOLVED" does not count as resolved.
-            if re.search(r"(?<![\w-])BLOCKING\b", line) and not (
-                    "[resolved]" in line.lower() or re.search(r"\bRESOLVED\b", line)):
-                problem(path, n, f"unresolved BLOCKING finding: {line.strip()[:200]}")
+        for name, body in sections(lines or []):
+            if not name.lower().startswith(BUCKETS):
+                continue  # only findings count; preamble and return summary are prose
+            for n, line in body:
+                # Any case of "blocking" marks a blocker ("non-blocking" does not); only the
+                # literal "[resolved]" token resolves it.
+                if re.search(r"(?<![\w-])blocking\b", line, re.I) and "[resolved]" not in line:
+                    problem(path, n, f"unresolved BLOCKING finding: {line.strip()[:200]}")
 
 
 # ---------- ledger ----------
 
-def sha_match(a, b):
-    a, b = a.strip().lower(), b.strip().lower()
-    return len(a) >= 7 and len(b) >= 7 and (a.startswith(b) or b.startswith(a))
+@functools.lru_cache(maxsize=None)
+def sha_counts(row_sha, sha):
+    """A ledger row at row_sha counts for sha when they are the same commit (prefix match,
+    >=7 chars), or row_sha resolves in git and nothing outside docs/ changed between them."""
+    a, b = row_sha.strip().lower(), sha.strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{7,40}", a) or len(b) < 7:
+        return False
+    if a.startswith(b) or b.startswith(a):
+        return True
+    git = lambda *cmd: subprocess.run(["git", *cmd], capture_output=True).returncode == 0
+    return git("cat-file", "-e", a + "^{commit}") and git("diff", "--quiet", a, b, "--", ":(top)", ":(top,exclude)docs/")
 
 
 def check_ledger(spec_path, items, ledger_path, sha):
@@ -250,12 +270,12 @@ def check_ledger(spec_path, items, ledger_path, sha):
         problem(ledger_path, 1, "ledger header must include acceptance_id, sha, verdict (tab-separated)")
         return
     col = {name: header.index(name) for name in ("acceptance_id", "sha", "verdict")}
-    last = {}  # aid -> verdict of the last row at this sha (ledger is append-only)
+    last = {}  # aid -> verdict of the last row that counts for this sha (ledger is append-only)
     for row in lines[1:]:
         cells = row.split("\t")
         if len(cells) < len(header):
             continue
-        if sha_match(cells[col["sha"]], sha):
+        if sha_counts(cells[col["sha"]], sha):
             last[cells[col["acceptance_id"]].strip()] = cells[col["verdict"]].strip()
     for aid, n in ui_items:
         verdict = last.get(aid)
@@ -270,7 +290,7 @@ def main():
     ap.add_argument("--reports", required=True, nargs="+", help="Playwright and/or Vitest JSON reporter files")
     ap.add_argument("--ledger", help="QA ledger TSV (docs/qa/ledger.tsv); required for UI specs")
     ap.add_argument("--gates", help="gates file (docs/gates.md); required when spec has human-B items")
-    ap.add_argument("--reviews", help="reviews directory (docs/reviews/)")
+    ap.add_argument("--reviews", required=True, help="reviews directory (docs/reviews/)")
     ap.add_argument("--sha", required=True, help="commit SHA under test (>=7 hex chars)")
     args = ap.parse_args()
 
