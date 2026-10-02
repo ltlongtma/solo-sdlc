@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Tests for hooks/*.sh. Needs jq.
+command -v jq >/dev/null || { echo "hooks: jq required"; exit 1; }
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 H="$PWD/hooks"; fail=0
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
@@ -20,6 +21,17 @@ status f none none
 chk "next none is a no-op" "$(stop f)" ""
 mkdir -p "$d/g/docs"; printf 'next: do it\nwaiting-on-human: none\n' > "$d/g/docs/status.md"
 chk "plain lines parse" "$(stop g | jq -r '.decision')" block
+mkdir -p "$d/h/docs"; printf -- '- next steps: x\n- waiting-on-human: none\n' > "$d/h/docs/status.md"
+chk "next steps: no block" "$(stop h)" ""
+mkdir -p "$d/i/docs"; printf -- '- **next:** do it\n' > "$d/i/docs/status.md"
+chk "missing waiting-on-human no block" "$(stop i)" ""
+chk "stop_hook_active no block" "$(jq -n --arg c "$d/a" '{cwd:$c,stop_hook_active:true}' | "$H/continue-or-stop.sh")" ""
+mkdir -p "$d/j/docs"; printf -- '- **next:** do it\r\n- **waiting-on-human:** none\r\n' > "$d/j/docs/status.md"
+chk "CRLF blocks" "$(stop j | jq -r '.decision')" block
+mkdir -p "$d/k/docs"; printf -- '- **Next:** do it\n- **Waiting-on-human:** none\n' > "$d/k/docs/status.md"
+chk "bold-colon Next blocks" "$(stop k | jq -r '.decision')" block
+status l "do it" "<gate id>"
+chk "placeholder waiting no block" "$(stop l)" ""
 
 ss() { jq -n --arg c "$d/$1" '{cwd:$c}' | "$H/session-start.sh"; }
 chk "session-start injects" "$(ss a | jq -r '.hookSpecificOutput.additionalContext' | grep -c 'write the parser')" 1

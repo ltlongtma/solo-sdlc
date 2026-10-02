@@ -1,8 +1,8 @@
 # Sourced by the hooks. Prints the value of a status.md field ($2) from file $1.
-# Accepts "- **next:** x", "- **next**: x" and plain "next: x".
+# Accepts "- **next:** x", "- **next**: x" and plain "next: x" (case-insensitive; colon must follow the name).
 field() {
-  sed -nE "s/^[-*[:space:]]*(\*\*)?$2(\*\*)?:?(\*\*)?:?[[:space:]]*//p" "$1" | head -n1 |
-    sed -E 's/[[:space:]]+$//'
+  tr -d '\r' < "$1" | grep -iE "^[-*[:space:]]*$2(\*\*:|:(\*\*)?)" | head -n1 |
+    sed -E 's/^[-*[:space:]]*[A-Za-z-]+(\*\*:|:(\*\*)?)[[:space:]]*//; s/[[:space:]]+$//'
 }
 # True when a value is empty, "none", or an unfilled <...> template placeholder.
 is_empty() {
