@@ -60,7 +60,7 @@ copy() {
   created+=("$dst")
 }
 
-for d in business specs plans decisions design releases retro templates; do
+for d in business specs plans decisions design releases retro templates reviews qa; do
   mkdirp "docs/$d"
 done
 
@@ -68,6 +68,61 @@ done
 for t in spec plan adr validation runbook release retro; do
   copy "$t.md" "docs/templates/$t.md"
 done
+
+copy review.md   docs/templates/review.md
+copy status.md   docs/status.md
+copy gates.md    docs/gates.md
+copy preferences.md docs/preferences.md
+copy ledger.tsv  docs/qa/ledger.tsv
+
+# The CI gate needs docs/reviews/ to exist in a fresh checkout; git does not track empty dirs.
+if [ -e docs/reviews/.gitkeep ]; then
+  skipped+=("docs/reviews/.gitkeep")
+else
+  say "create docs/reviews/.gitkeep"
+  [ "$DRY_RUN" -eq 1 ] || : > docs/reviews/.gitkeep
+  created+=("docs/reviews/.gitkeep")
+fi
+
+# Contract checkers, run by the pre-push hook and by CI.
+for c in spec plan gate; do
+  copy "../scripts/check-$c.py" "scripts/sdlc/check-$c.py"
+  case " ${created[*]:-} " in *" scripts/sdlc/check-$c.py "*) [ "$DRY_RUN" -eq 1 ] || chmod +x "scripts/sdlc/check-$c.py" ;; esac
+done
+
+# pre-push hook: lint specs and plans before they leave the machine.
+if [ -e .githooks/pre-push ]; then
+  skipped+=(".githooks/pre-push")
+else
+  say "create .githooks/pre-push"
+  if [ "$DRY_RUN" -eq 0 ]; then
+    mkdir -p .githooks
+    cat > .githooks/pre-push <<'HOOK'
+#!/usr/bin/env bash
+# Blocks the push when a spec or plan fails its contract check. Silent when there is nothing to check.
+set -u
+cd "$(git rev-parse --show-toplevel)" || exit 1
+rc=0
+specs=(docs/specs/*.md); plans=(docs/plans/*.md)
+[ -e "${specs[0]}" ] && { python3 scripts/sdlc/check-spec.py "${specs[@]}" || rc=1; }
+for p in "${plans[@]}"; do
+  [ -e "$p" ] && { python3 scripts/sdlc/check-plan.py "$p" || rc=1; }
+done
+[ "$rc" -eq 0 ] || echo "pre-push: contract check failed; fix the lines above (bypass: git push --no-verify)" >&2
+exit "$rc"
+HOOK
+    chmod +x .githooks/pre-push
+  fi
+  created+=(".githooks/pre-push")
+fi
+
+hooks_path="$(git config --get core.hooksPath || true)"
+if [ -z "$hooks_path" ]; then
+  if [ "$DRY_RUN" -eq 1 ]; then echo "would set git config core.hooksPath .githooks"
+  else git config core.hooksPath .githooks && echo "set git config core.hooksPath .githooks"; fi
+elif [ "$hooks_path" != ".githooks" ]; then
+  echo "warning: core.hooksPath is already '$hooks_path'; left unchanged. Call .githooks/pre-push from there." >&2
+fi
 
 copy backlog.md  docs/backlog.md
 copy WORKFLOW.md docs/WORKFLOW.md
@@ -96,6 +151,8 @@ cat <<'EOF'
   .github/workflows/ci.yml   replace the placeholder commands with this project's real ones.
                              "CI green" is the phase 6 gate; wrong commands fail loudly, which is
                              the correct failure. A missing workflow fails silently.
+                             The `gate` job stays red until the real e2e step replaces the `{}`
+                             placeholder report. That is intended: the gate fails closed.
   AGENTS.md                  track, phase in flight, and the real test/build commands.
   docs/WORKFLOW.md           the track this project runs; record any deliberate deviation.
   .env.example               every variable name the app needs. Placeholder values only.
