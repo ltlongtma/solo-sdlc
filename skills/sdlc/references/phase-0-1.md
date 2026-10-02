@@ -35,7 +35,7 @@ No jumping ahead. If "brainstorm" is ambiguous, infer the kind from where the wo
 A repo is the artifact of the decision to BUILD, not of deciding whether to build. Do not `git init` yet.
 
 1. Run phases 0–1 in a scratch directory (backlog + validation live in scratch). The idea can still come back NO-GO — don't spawn an orphan repo.
-2. Raise GO / NO-GO as one B item that also carries the repo location and name as options with a default.
+2. Raise GO / NO-GO as one B item (in `<scratch>/gates.md`, copied to `docs/gates.md` by scaffold after GO) that also carries the repo location and name as options with a default.
 3. On GO → `git init` → scaffold → move the validation out of scratch into `docs/business/` (first commit) → phase 2.
 4. On NO-GO → no repo; the idea survives as one line in a personal backlog.
 

@@ -36,6 +36,10 @@ for fam in spec plan gate; do
   done
 done
 
+# --list must also run the checks (resume drift) and exit 1 on a ticked task with no hash
+set +e; out="$(python3 $S/check-plan.py --list --spec tests/fixtures/plan/bad-ticked-no-hash/spec.md --no-git tests/fixtures/plan/bad-ticked-no-hash/plan.md 2>&1)"; rc=$?; set -e
+if [ "$rc" -eq 1 ] && grep -q "todo (no hash)" <<<"$out"; then ok plan-list-drift; else bad "plan-list-drift (exit $rc)"; fi
+
 # 3. gate cases that a fixture directory cannot express
 G=tests/fixtures/gate/good
 gate() { python3 "$ROOT/$S/check-gate.py" --spec "$ROOT/$G/spec.md" --reports "$ROOT/$G"/reports/*.json \

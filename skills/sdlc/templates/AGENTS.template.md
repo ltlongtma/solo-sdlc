@@ -2,7 +2,7 @@
 
 Entry point for whoever shows up next, human or AI.
 
-**Resume order:** this file → `docs/status.md` (current state) → `python3 scripts/sdlc/check-plan.py --list`.
+**Resume order:** this file → `docs/status.md` (current state) → `python3 scripts/sdlc/check-plan.py docs/plans/<plan>.md --list` (plan path from `docs/status.md`; converge if it reports problems).
 Do not trust plan checkboxes: a ticked task with no commit hash counts as not done.
 
 ## Invariants
@@ -31,7 +31,7 @@ Do not trust plan checkboxes: a ticked task with no commit hash counts as not do
 <typecheck>
 <build>
 <dev>
-python3 scripts/sdlc/check-plan.py --list                  # task status of every plan
+python3 scripts/sdlc/check-plan.py docs/plans/<plan>.md --list   # task table, then the plan checks (plan path from docs/status.md)
 python3 scripts/sdlc/check-spec.py docs/specs/<slug>.md    # spec gate
 python3 scripts/sdlc/check-plan.py docs/plans/<file>.md    # plan gate
 python3 scripts/sdlc/check-gate.py --spec <spec> --reports <json...> --reviews docs/reviews/   # QA gate (see commands/gate.md)

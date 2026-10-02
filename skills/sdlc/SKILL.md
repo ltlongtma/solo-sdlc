@@ -5,11 +5,11 @@ description: Use when a solo founder working with AI has a new product or featur
 
 # SDLC — one founder + AI
 
-A 9-phase pipeline. The AI does the work and decides most things; the human decides only B items. Gates are scripts, not statements. This file is a router — read the reference for the phase you are in, not all of them.
+A 9-phase pipeline. The AI does the work and decides most things; the human answers only B items. Gates are scripts, not statements. This file is a router — read the reference for the phase you are in, not all of them.
 
 ## When invoked
 
-1. **Resuming a repo** → follow the resume order in [session-lifecycle.md](references/session-lifecycle.md): `AGENTS.md` → `docs/status.md` (`next:`) → `python3 scripts/sdlc/check-plan.py <plan> --list`. Converge only when it reports drift. The repo's `docs/WORKFLOW.md` wins over this skill where they disagree.
+1. **Resuming a repo** → follow the resume order in [session-lifecycle.md](references/session-lifecycle.md): `AGENTS.md` → `docs/status.md` (`next:`) → `python3 scripts/sdlc/check-plan.py <plan> --list` (plan path from `docs/status.md`). Converge when it reports problems. The repo's `docs/WORKFLOW.md` wins over this skill where they disagree.
 2. **Fresh idea, no repo** → phases 0–1 in scratch; no `git init` until GO. See [phase-0-1.md](references/phase-0-1.md).
 3. **Repo without the process** → run `scaffold.sh` (idempotent), then enter at the real phase. See [phase-0-1.md](references/phase-0-1.md#scaffold).
 
@@ -50,6 +50,7 @@ Artifact formats the scripts parse: [artifact-format.md](references/artifact-for
 
 ## How work runs
 
+- **Superpowers prompts are pre-answered:** `brainstorming` design/spec approvals are approved by policy unless the work contains a B item (phases 0 and 2).
 - **Thin orchestrator, one fresh subagent per task**, briefed with [brief-template.md](references/brief-template.md). Reports ≤15 lines.
 - **State in the same commit as the code:** plan tick with hash + `docs/status.md` (`next:`, `waiting-on-human:`). No "one phase = one session" — new session only at ~60% context at a task boundary, or after ship. See [session-lifecycle.md](references/session-lifecycle.md).
 - **Model tiers** `strong` / `standard` / `fast`; risk flags force `strong`; the model changes only at spawn or escalation. See [model-tiers.md](references/model-tiers.md).

@@ -2,7 +2,7 @@
 
 Every decision in the pipeline falls into exactly one class. Only class B stops the work.
 
-## B — synchronous stop (the human decides)
+## B — synchronous stop (the human answers)
 
 B covers:
 - money and pricing;

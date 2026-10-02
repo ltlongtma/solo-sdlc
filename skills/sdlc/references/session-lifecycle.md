@@ -47,12 +47,12 @@ Harness compaction is also fine — state is in files, so nothing is lost.
 
 1. `AGENTS.md` (loaded automatically by most harnesses; ≤1500 words).
 2. `docs/status.md` → take `next:`.
-3. `python3 scripts/sdlc/check-plan.py <plan> --list` — reports ticked tasks whose hash does not resolve and acceptance ids no task covers.
+3. `python3 scripts/sdlc/check-plan.py <plan> --list` (plan path from `docs/status.md`) — prints the task table, then reports ticked tasks whose hash does not resolve and acceptance ids no task covers.
 4. Read only the files `next:` needs. Not the backlog, not the full plan.
 
 The repo's `docs/WORKFLOW.md` wins over this skill where they disagree.
 
-**Converge only when `check-plan` reports drift** (or the code clearly disagrees with the plan). Do not trust the checkboxes: read the actual code plus `git log`, compare against the open spec and plan, and produce three lists:
+**Converge when `check-plan` reports problems** (or the code clearly disagrees with the plan). Do not trust the checkboxes: read the actual code plus `git log`, compare against the open spec and plan, and produce three lists:
 - (a) tasks the plan calls done that the code does not have, or implements differently;
 - (b) code that exists but the plan never mentioned (scope drift → ADR or spec amendment);
 - (c) spec requirements with no task at all.
