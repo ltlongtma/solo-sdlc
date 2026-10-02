@@ -1,8 +1,8 @@
 // Record captioned browser evidence: MP4 + per-step storyboard + state trace + PR snippet.
 // Usage: import { recordEvidence } from '<skill>/scripts/evidence.mjs' from a spec file, then `node spec.mjs [outDir]`.
 import { chromium } from 'playwright-core';
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ffmpeg = (...args) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...args]);
@@ -21,11 +21,14 @@ const CAPTION_CSS =
  * @param {{caption: string, claim: string, act?: (page) => Promise<void>, traceOnly?: string}[]} o.steps
  *        caption: what the viewer reads (no number, it is added). claim: row text for the PR table.
  *        traceOnly: set when the claim cannot be seen on screen (e.g. native file dialog in headless) — says why.
- * @param {(page) => Promise<void>} [o.setup]  Runs in every document before page scripts (addInitScript body).
+ * @param {() => void} [o.setup]  Runs in every document before page scripts (addInitScript body, no page arg).
  * @param {{width: number, height: number}} [o.viewport]
  * @param {number} [o.holdMs]       Time each step's result stays on screen. Min 1000 so every caption lands in the video.
  */
 export async function recordEvidence(o) {
+  if (spawnSync('ffmpeg', ['-version']).status !== 0) {
+    throw new Error('ffmpeg not found on PATH. Install it (e.g. `brew install ffmpeg`); see the Setup section in skills/evidence/SKILL.md.');
+  }
   const viewport = o.viewport ?? { width: 1000, height: 500 };
   const holdMs = Math.max(1000, o.holdMs ?? 1500);
   const out = o.outDir ?? join('docs', 'qa', 'evidence', o.slug);
@@ -34,49 +37,62 @@ export async function recordEvidence(o) {
   rmSync(tmp, { recursive: true, force: true });
   mkdirSync(tmp, { recursive: true });
 
-  const browser = await chromium.launch({ channel: process.env.EVIDENCE_CHANNEL ?? 'chrome' });
-  const context = await browser.newContext({ viewport, recordVideo: { dir: tmp, size: viewport } });
-  if (o.setup) await context.addInitScript(o.setup);
-  const page = await context.newPage();
-  const videoStart = Date.now();
-  await page.goto(o.url);
-  await page.waitForSelector(o.ready);
-
-  const setCaption = (text) =>
-    page.evaluate(
-      ([text, css]) => {
-        let bar = document.getElementById('__evidence_caption');
-        if (!bar) {
-          bar = document.createElement('div');
-          bar.id = '__evidence_caption';
-          bar.style.cssText = css;
-          document.body.appendChild(bar);
-        }
-        bar.textContent = text;
-      },
-      [text, CAPTION_CSS],
-    );
-
+  let browser;
+  try {
+    browser = await chromium.launch({ channel: process.env.EVIDENCE_CHANNEL ?? 'chrome' });
+  } catch (e) {
+    rmSync(tmp, { recursive: true, force: true });
+    throw new Error(`Browser launch failed: ${e.message}\nNo Chrome installed? Set EVIDENCE_CHANNEL=chromium (after \`npx playwright-core install chromium\`).`);
+  }
   const trace = [];
   let firstStepAt;
-  for (const [i, s] of o.steps.entries()) {
-    const caption = `${i + 1}. ${s.caption}`;
-    await setCaption(caption); // caption before acting
-    if (s.act) await s.act(page);
-    await setCaption(caption); // re-apply in case the action navigated
-    await page.waitForTimeout(300); // let the result paint before probing/screenshotting
-    const at = Date.now() - videoStart;
-    firstStepAt ??= at - 300;
-    trace.push({ step: i + 1, caption, t: at - firstStepAt, state: await o.probe(page) });
-    // Storyboard frame = screenshot of this exact step, never a time-sampled video frame.
-    await page.screenshot({ path: join(tmp, `frame-${String(i + 1).padStart(2, '0')}.png`) });
-    await page.waitForTimeout(holdMs - 300);
+  try {
+    const context = await browser.newContext({ viewport, recordVideo: { dir: tmp, size: viewport } });
+    if (o.setup) await context.addInitScript(o.setup);
+    const page = await context.newPage();
+    const videoStart = Date.now();
+    await page.goto(o.url);
+    await page.waitForSelector(o.ready);
+
+    const setCaption = (text) =>
+      page.evaluate(
+        ([text, css]) => {
+          let bar = document.getElementById('__evidence_caption');
+          if (!bar) {
+            bar = document.createElement('div');
+            bar.id = '__evidence_caption';
+            bar.style.cssText = css;
+            document.body.appendChild(bar);
+          }
+          bar.textContent = text;
+        },
+        [text, CAPTION_CSS],
+      );
+
+    for (const [i, s] of o.steps.entries()) {
+      const caption = `${i + 1}. ${s.caption}`;
+      await setCaption(caption); // caption before acting
+      if (s.act) await s.act(page);
+      await setCaption(caption); // re-apply in case the action navigated
+      await page.waitForTimeout(300); // let the result paint before probing/screenshotting
+      const at = Date.now() - videoStart;
+      firstStepAt ??= at - 300;
+      trace.push({ step: i + 1, caption, t: at - firstStepAt, state: await o.probe(page) });
+      // Storyboard frame = screenshot of this exact step, never a time-sampled video frame.
+      await page.screenshot({ path: join(tmp, `frame-${String(i + 1).padStart(2, '0')}.png`) });
+      await page.waitForTimeout(holdMs - 300);
+    }
+
+  } catch (e) {
+    rmSync(tmp, { recursive: true, force: true });
+    throw e;
+  } finally {
+    await browser.close(); // closes the context too
   }
 
-  await context.close();
-  await browser.close();
-
-  const raw = join(tmp, readdirSync(tmp).find((f) => f.endsWith('.webm')));
+  const webm = readdirSync(tmp).find((f) => f.endsWith('.webm'));
+  if (!webm) throw new Error(`no .webm recorded in ${tmp}; the browser context closed before Playwright saved the video`);
+  const raw = join(tmp, webm);
   const mp4 = join(out, `${o.slug}.mp4`);
   const storyboard = join(out, `${o.slug}.storyboard.png`);
   const strip = join(out, `${o.slug}.captions.png`);
@@ -91,15 +107,12 @@ export async function recordEvidence(o) {
   ffmpeg('-framerate', '1', '-i', join(tmp, 'frame-%02d.png'), '-vf', `tile=${cols}x${rows}:color=0x333333:padding=4`, '-frames:v', '1', storyboard);
   // Caption bar sampled at 4 fps across the whole MP4 — read it back to confirm every caption made it into the video.
   const barH = 60;
-  ffmpeg('-i', mp4, '-vf', `crop=${viewport.width}:${barH}:0:${viewport.height - barH},fps=4,tile=1x${Math.ceil(((trace.length * holdMs) / 1000) * 4) + 2}`, '-frames:v', '1', strip);
+  ffmpeg('-i', mp4, '-vf', `crop=${viewport.width}:${barH}:0:${viewport.height - barH},fps=4,tile=1x${Math.ceil(((trace.at(-1).t + holdMs) / 1000) * 4) + 2}`, '-frames:v', '1', strip);
 
   // Hard asserts: the three artifacts must describe the same steps.
   if (frames.length !== o.steps.length || trace.length !== o.steps.length) {
     throw new Error(`mismatch: ${o.steps.length} steps, ${trace.length} trace entries, ${frames.length} storyboard frames`);
   }
-  trace.forEach((e, i) => {
-    if (e.step !== i + 1) throw new Error(`step numbering gap at trace[${i}]`);
-  });
 
   writeFileSync(traceFile, JSON.stringify(trace, null, 2) + '\n');
   rmSync(tmp, { recursive: true, force: true });

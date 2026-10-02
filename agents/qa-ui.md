@@ -26,7 +26,7 @@ You are UI QA with a mandate to BREAK the screens before a real user does. A scr
 
    ```
    acceptance_id	sha	verdict	evidence	verifier	date
-   A3	<HEAD sha>	live-ui-verified	docs/qa/evidence/a3-1440.png	qa-ui	<YYYY-MM-DD>
+   A3	<HEAD sha>	live-ui-verified	docs/qa/evidence/a3-keyboard/a3-keyboard.storyboard.png	qa-ui	<YYYY-MM-DD>
    ```
 
    `verdict` is `live-ui-verified` only when the A-id passed at both viewports with matching mockup, no serious/critical axe violation, and no console error. Otherwise `fail`. The gate reads the last row per A-id at this SHA, so a later fix needs a new run and a new row.

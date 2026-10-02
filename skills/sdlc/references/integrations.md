@@ -1,6 +1,6 @@
 # Integrations
 
-**Rule:** harness-specific tool and model names appear ONLY in this file. Everything else in the plugin uses tier names (`strong` / `standard` / `fast`) and capabilities.
+**Rule:** harness-specific tool names appear only in this file, except Claude Code agent frontmatter fields (`model` / `effort` / `disallowedTools`) — the adapter layer. Everything else in the plugin uses tier names (`strong` / `standard` / `fast`) and capabilities.
 
 ## Capability → optional skills (use if present)
 
@@ -28,7 +28,7 @@ Never required. If a skill is absent, use the fallback and carry on.
 | `standard` | `model: sonnet` |
 | `fast` | `model: haiku` |
 
-Set it in an agent's frontmatter, or pass `model` when spawning (alias `opus`, `sonnet`, `haiku`; `inherit` = main session's model). Order: spawn-time parameter, then frontmatter, then the main model. `effort` is a frontmatter field only.
+Set it in an agent's frontmatter, or pass `model` when spawning (alias `opus`, `sonnet`, `haiku`; `inherit` = main session's model). Order: per-invocation `model` parameter, then agent frontmatter `model` (`inherit` = main conversation's model), then the `CLAUDE_CODE_SUBAGENT_MODEL` env var, then the main conversation's model (https://code.claude.com/docs/en/sub-agents). `effort` is a frontmatter field only.
 
 ### omp
 
@@ -48,6 +48,8 @@ task:
     qa-logic: "@sdlc-strong"
     qa-ui: "@sdlc-strong"
 ```
+
+Implementer spawns use `"@sdlc-standard"`; quick lookups use `"@sdlc-fast"`.
 
 ### Other harnesses
 
