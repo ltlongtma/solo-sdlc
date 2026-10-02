@@ -5,7 +5,7 @@
   - a **Task status** section (see `session-lifecycle.md`);
   - per task: `Covers`, `Files`, `Test`, `Verify`, `Tier`, `Risk flags` (format: `artifact-format.md`; tiers: `model-tiers.md`). Tasks list commands + interfaces, not full code.
   - a UI spec needs `Task 0 — Verification harness`.
-- **Driven by:** `superpowers:writing-plans`.
+- **Driven by:** `superpowers:writing-plans`. If the superpowers skills are present, pre-answer their prompts: the execution-choice question is answered "subagent-driven development"; `brainstorming` design/spec approvals are approved by policy unless the work contains a B item.
 - **Gate (no human approval — `decision-policy.md`, class R):**
   - `python3 scripts/sdlc/check-plan.py docs/plans/<plan>.md` exits 0 (every A-id covered, risk flags ⇒ `Tier: strong`);
   - tasks are small enough (*Task granularity* below);

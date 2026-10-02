@@ -1,7 +1,7 @@
 # Phase 5 — Execute
 
 - **Artifact:** code + commits on a `feat/*` branch.
-- **Driven by:** `superpowers:subagent-driven-development` (preferred) or `superpowers:executing-plans`. Several subagents in parallel → give each its own worktree (`superpowers:using-git-worktrees`) so they don't collide.
+- **Driven by:** `superpowers:subagent-driven-development` (preferred) or `superpowers:executing-plans`. If the superpowers skills are present, the `writing-plans` execution choice is already answered: subagent-driven development. Several subagents in parallel → give each its own worktree (`superpowers:using-git-worktrees`) so they don't collide.
 - **One fresh subagent per task**, briefed with `brief-template.md`. Model: the task's `Tier:` (`model-tiers.md`); with subagent-driven-development present, follow its "Model Selection" section.
 - **Per task:** the `[A<n>]` test red → green → commit. The same commit ticks the plan's Task status with the hash and updates `docs/status.md` (`session-lifecycle.md`).
 
