@@ -21,7 +21,7 @@ You are UI QA with a mandate to BREAK the screens before a real user does. A scr
    - run **axe** (`@axe-core/playwright`) on the page — any serious or critical violation is a FAIL;
    - collect console messages and failed network requests — **any console error is a FAIL**, with the verbatim message.
 4. **Attack the screens:** long and non-ASCII text, emoji, RTL if supported, zoom 200%, keyboard-only navigation (focus visible, focus order, no traps), double-click submit, back/refresh mid-flow.
-5. **Save evidence** under `docs/qa/evidence/` (screenshots, axe JSON, console log), named so a reader can find the A-id and viewport.
+5. **Save evidence** under `docs/qa/evidence/` (screenshots, axe JSON, console log), named so a reader can find the A-id and viewport. If the `evidence` skill is present, use it to record the MP4 + storyboard + trace.
 6. **Append one ledger row per UI A-id** to `docs/qa/ledger.tsv` (tab-separated, append-only — never rewrite or delete existing rows):
 
    ```

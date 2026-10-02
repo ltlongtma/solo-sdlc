@@ -1,0 +1,8 @@
+{
+  "name": "evidence-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright-core": "^1.55.0"
+  }
+}
