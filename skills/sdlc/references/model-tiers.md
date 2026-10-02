@@ -1,6 +1,6 @@
 # Model tiers
 
-Three abstract tiers. This file uses tier names only; the mapping from tier to a concrete model for each harness lives in `references/integrations.md` (added later).
+Three abstract tiers. This file uses tier names only; the mapping from tier to a concrete model for each harness lives in [integrations.md](integrations.md).
 
 | Tier | Use for |
 |---|---|

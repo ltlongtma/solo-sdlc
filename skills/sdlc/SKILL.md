@@ -53,7 +53,7 @@ Artifact formats the scripts parse: [artifact-format.md](references/artifact-for
 - **Superpowers prompts are pre-answered:** `brainstorming` design/spec approvals are approved by policy unless the work contains a B item (phases 0 and 2).
 - **Thin orchestrator, one fresh subagent per task**, briefed with [brief-template.md](references/brief-template.md). Reports ≤15 lines.
 - **State in the same commit as the code:** plan tick with hash + `docs/status.md` (`next:`, `waiting-on-human:`). No "one phase = one session" — new session only at ~60% context at a task boundary, or after ship. See [session-lifecycle.md](references/session-lifecycle.md).
-- **Model tiers** `strong` / `standard` / `fast`; risk flags force `strong`; the model changes only at spawn or escalation. See [model-tiers.md](references/model-tiers.md).
+- **Model tiers** `strong` / `standard` / `fast`; risk flags force `strong`; the model changes only at spawn or escalation. See [model-tiers.md](references/model-tiers.md). Optional skills and per-harness model mapping: [integrations.md](references/integrations.md).
 - **The author does not grade their own work** — reviewers run in a fresh context. No subagent support → run each agent as a separate headless process.
 - No superpowers / gstack installed → do it by hand, with the same artifacts and gates.
 
