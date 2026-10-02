@@ -41,18 +41,38 @@ The implementer turns `test.fixme` into `test` when the feature lands. The gate 
 
 ## Report format
 
+The file IS `skills/sdlc/templates/review.md`: summary headings first, then the four buckets, then
+`## Return summary`. The gate scans only `## Act on` / `## Consider` / `## Noted` / `## Dismissed`, so every
+finding goes in exactly one of them — never in the summary. A must-fix finding goes in `## Act on` with
+`BLOCKING` on its line; every Dismissed item carries a reason. Write `blocking` inside a bucket only to mark a
+must-fix.
+
 ```
+# Review: QA — <feature> — <date>
+Reviewer: qa-logic · Scope: <commit / spec>
+
 ## Real status
 tests: X pass / Y fail / Z fixme · typecheck: ... · build: ...
 
 ## Acceptance
 | A-id | Verify by | Test | Result | Evidence |
 
-## BUGS FOUND (every bug needs an exact repro)
-1. <description> — Repro: <commands/steps> — Expected: … — Actual: <verbatim output>
+## Act on
+- BLOCKING: <bug that fails an A-id, a red test/typecheck/build, or a weakened acceptance test> — Repro: <commands/steps> — Expected: … — Actual: <verbatim output>
+- <other bug> — Repro — Expected — Actual
+- Could not verify <A-id / what> — needs <env, account, key>
 
-## Could not verify
-- <what + what it needs (env, account, key)>
+## Consider
+- <edge case worth hardening if cheap; what it costs>
+
+## Noted
+- <true but no action now>
+
+## Dismissed
+- <finding> — dismissed because <reason>
+
+## Return summary
+<verdict, count per bucket, every BLOCKING line, top Act-on items — ≤15 lines>
 ```
 
 Do NOT fix product code — report with repros only. A bug without repro steps doesn't count.

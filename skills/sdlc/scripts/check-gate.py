@@ -7,7 +7,8 @@ Conditions (all must hold):
      "[A<n>]"; no test carrying "[A<n>]" is failed, skipped, fixme, pending or todo;
      a Vitest report with success=false or any test file not "passed" fails;
   2. every human-B A<n> is answered in the gates file;
-  3. no unresolved blocking finding in the bucket sections of any reviews/*.md;
+  3. every reviews/*.md has bucket headings, and no unresolved blocking finding
+     sits in its bucket sections;
   4. UI spec: every UI A<n> (Verify by: e2e) has a ledger row whose verdict is
      live-ui-verified at a SHA that counts for --sha: same commit (prefix match,
      >=7 chars), or an earlier commit with no non-docs/ change since then.
@@ -230,9 +231,12 @@ def check_reviews(reviews_dir):
         return
     for path in sorted(glob.glob(os.path.join(reviews_dir, "*.md"))):
         lines = read_lines(path, "review")
-        for name, body in sections(lines or []):
-            if not name.lower().startswith(BUCKETS):
-                continue  # only findings count; preamble and return summary are prose
+        if lines is None:
+            continue
+        found = [(name, body) for name, body in sections(lines) if name.lower().startswith(BUCKETS)]
+        if not found:  # fail closed: findings outside the buckets would never be scanned
+            problem(path, 0, "not in review format (no Act on/Consider/Noted/Dismissed headings)")
+        for name, body in found:  # only findings count; preamble and return summary are prose
             for n, line in body:
                 # Any case of "blocking" marks a blocker ("non-blocking" does not); only the
                 # literal "[resolved]" token resolves it.

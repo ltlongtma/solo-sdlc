@@ -68,6 +68,11 @@ Bucket headings `## Act on`, `## Consider`, `## Noted`, `## Dismissed`. Only lin
 sections are scanned (preamble and `## Return summary` are prose). A scanned line containing the word
 `blocking` in any case (not `non-blocking`) is unresolved unless it contains the literal token
 `[resolved]`; `RESOLVED` or `resolved` alone does not count. `check-gate --reviews` is required.
+A review file with none of the four bucket headings fails the gate ("not in review format") — fail
+closed, since findings outside the buckets are never scanned. Every reviewer agent writes its report
+in this format: agent-specific summary (verdict, options, matrix) in the preamble, every finding in
+exactly one bucket, a must-fix finding in `## Act on` with `BLOCKING` on its line, every Dismissed
+item with a reason.
 
 ## Ledger (`docs/qa/ledger.tsv`)
 

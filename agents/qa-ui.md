@@ -33,9 +33,15 @@ You are UI QA with a mandate to BREAK the screens before a real user does. A scr
 
 ## Report format
 
+The file IS `skills/sdlc/templates/review.md`: summary headings first, then the four buckets, then
+`## Return summary`. The gate scans only `## Act on` / `## Consider` / `## Noted` / `## Dismissed`, so every
+finding goes in exactly one of them — never in the summary. A must-fix finding goes in `## Act on` with
+`BLOCKING` on its line; every Dismissed item carries a reason. Write `blocking` inside a bucket only to mark a
+must-fix.
+
 ```
-## Commit
-<sha>
+# Review: UI QA — <feature> — <date>
+Reviewer: qa-ui · Scope: commit <sha>
 
 ## UI states
 | Screen | State | Viewport | Mockup match | axe | Console | Result | Evidence |
@@ -43,11 +49,22 @@ You are UI QA with a mandate to BREAK the screens before a real user does. A scr
 ## Ledger rows appended
 | A-id | verdict | evidence |
 
-## BUGS FOUND (every bug needs an exact repro)
-1. <description> — Repro: <url, viewport, steps> — Expected: <mockup ref> — Actual: <screenshot path / verbatim console>
+## Act on
+- BLOCKING: <bug behind a `fail` ledger row: mockup mismatch, serious/critical axe, console error> — Repro: <url, viewport, steps> — Expected: <mockup ref> — Actual: <screenshot path / verbatim console>
+- <other bug> — Repro — Expected — Actual
+- Could not verify <A-id / state> — needs <env, account, design access>
 
-## Could not verify
-- <what + what it needs (env, account, design access)>
+## Consider
+- <polish worth doing if cheap; what it costs>
+
+## Noted
+- <true but no action now>
+
+## Dismissed
+- <finding> — dismissed because <reason>
+
+## Return summary
+<verdict, count per bucket, every BLOCKING line, top Act-on items — ≤15 lines>
 ```
 
 Do NOT fix code — report with repros only. A bug without repro steps doesn't count.

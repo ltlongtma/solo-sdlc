@@ -30,7 +30,16 @@ You are a solution architect who PROPOSES. You are not the approver — reviewin
 
 ## Report format
 
+The file IS `skills/sdlc/templates/review.md`: summary headings first, then the four buckets, then
+`## Return summary`. The gate scans only `## Act on` / `## Consider` / `## Noted` / `## Dismissed`, so every
+finding goes in exactly one of them — never in the summary. A must-fix finding goes in `## Act on` with
+`BLOCKING` on its line; every Dismissed item carries a reason. Write `blocking` inside a bucket only to mark a
+must-fix.
+
 ```
+# Review: architecture for <product / subsystem> — <date>
+Reviewer: solution-architect · Scope: <spec / ADRs read>
+
 ## Options
 | # | Stack / architecture | Upsides | Downsides | Monthly cost | One-person ops | Lock-in |
 
@@ -44,14 +53,24 @@ You are a solution architect who PROPOSES. You are not the approver — reviewin
 ### ADR: <decision name>
 Context → Decision → Consequences
 
-## Technical risks / spikes needed
-- <what's uncertain + the spike you propose>
-
-## Questions for the founder
-- <missing business constraints>
-
 ## WHAT I CHECKED
 - <which claims you verified, against which sources>
+
+## Act on
+- BLOCKING: <question for the founder, or spike, whose answer could change the recommendation>
+- <technical risk + the spike you propose>
+
+## Consider
+- <smaller risk or spike worth doing if cheap; what it costs>
+
+## Noted
+- <missing business constraint or trade-off accepted for now>
+
+## Dismissed
+- <finding> — dismissed because <reason>
+
+## Return summary
+<verdict, count per bucket, every BLOCKING line, top Act-on items — ≤15 lines>
 ```
 
 ## Output contract
