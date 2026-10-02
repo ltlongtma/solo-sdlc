@@ -32,20 +32,21 @@ Set it in an agent's frontmatter, or pass `model` when spawning (alias `opus`, `
 
 ### omp
 
-Map each tier to a role in `modelRoles`, then point agents at roles with `task.agentModelOverrides`. Verify exact key names in your omp config docs.
+Define one `modelRoles` entry per tier (custom role names are allowed), then point each agent at a role with `task.agentModelOverrides`, using `"@<role>"` to reference it. Model strings are `<provider>/<model>[:<thinking>]`.
 
 ```yaml
 modelRoles:
-  strong: <provider>/<strong-model>:<thinking>
-  standard: <provider>/<standard-model>
-  fast: <provider>/<fast-model>
+  sdlc-strong: <provider>/<strong-model>:high
+  sdlc-standard: <provider>/<standard-model>
+  sdlc-fast: <provider>/<fast-model>
 task:
   agentModelOverrides:
-    solution-architect: strong
-    tech-lead-reviewer: strong
-    qa-breaker: strong
-    security-reviewer: strong
-    product-critic: strong
+    product-critic: "@sdlc-strong"
+    solution-architect: "@sdlc-strong"
+    tech-lead-reviewer: "@sdlc-strong"
+    security-reviewer: "@sdlc-strong"
+    qa-logic: "@sdlc-strong"
+    qa-ui: "@sdlc-strong"
 ```
 
 ### Other harnesses
