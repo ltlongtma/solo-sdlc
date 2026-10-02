@@ -4,10 +4,17 @@ A gated 9-phase SDLC for **one founder shipping with AI**.
 
 Most AI coding workflows optimize the wrong bottleneck. When you're solo, the expensive failure isn't slow typing — it's spending three weeks building something nobody wanted, or letting an agent grind on a broken plan until it has wrecked your codebase. This plugin puts gates where those failures happen.
 
-Three ideas do most of the work:
+It is **artifact-first and harness-agnostic**. Three layers, each usable without the one above it:
+
+- **Contract** — plain files in your repo: specs with `A<n>` acceptance IDs, a plan with per-task `Tier:` and risk flags, `docs/status.md`, `docs/gates.md`, a QA ledger. Three stdlib-only scripts (`check-spec`, `check-plan`, `check-gate`) read them.
+- **Instruction** — the `sdlc` skill, a router into one reference per phase. Any agent that can read markdown can follow it.
+- **Adapter** — the thin Claude Code layer: agent frontmatter (`model`, `effort`), slash commands, and optional hooks. Other harnesses map tiers to models via [`integrations.md`](skills/sdlc/references/integrations.md).
+
+Four ideas do most of the work:
 
 - **Validate the business case before the repo exists.** A repo is the artifact of deciding to *build*, not of deciding *whether* to build. Phases 0–1 run in a scratch directory; `git init` happens only after you say GO.
-- **The author never grades their own work.** Every review is a separate agent with fresh context — the session that wrote the plan cannot be the one that approves it.
+- **The author never grades their own work, and a gate is a script, not a statement.** Every review is a separate agent with fresh context. A phase passes when its check exits 0; `check-gate` runs in CI, so make the `gate` job a **required status check** in branch protection or it is advice. There is no plan-approval or PR sign-off step to rubber-stamp.
+- **Only money-class decisions stop the AI.** Decisions are sorted B / T / R: **B** (money, pricing, GO/NO-GO, prod deploy, destructive data ops, legal or customer-facing content, cutting scope) is the only kind that waits for you, recorded in `docs/gates.md` with options and a default; **T** is decided by the AI and logged with a `reverse with:` word; **R** rubber-stamp approvals are removed.
 - **Execution has a ceiling.** An agent gets 3 attempts at the same failure and 5 at a task. Then it reverts to the last green commit and reports, instead of looping until your budget and your architecture are both gone.
 
 ## Install
@@ -37,7 +44,7 @@ ln -s "$PWD/solo-sdlc/skills/sdlc" ~/.claude/skills/sdlc
 ln -s "$PWD"/solo-sdlc/agents/*.md ~/.claude/agents/
 ```
 
-Verified with `apm install --target cursor`: all 12 primitives land, the skill at `.agents/skills/sdlc/`, the six agents at `.cursor/agents/`, the five commands at `.cursor/commands/`. What I have *not* verified is whether each harness then surfaces those commands in its own `/` menu, or whether the agents' `model: opus` / `effort: high` is honored outside Claude Code — worst case they run on your session model, which is harmless. The skill auto-triggers either way.
+Verified with `apm install <local checkout> --target cursor`: all 14 primitives land — the three skills at `.agents/skills/` (`sdlc`, `find-idea`, `evidence`), the six agents at `.cursor/agents/`, the five commands at `.cursor/commands/` — plus the two optional hooks at `.cursor/hooks.json`. What I have *not* verified is whether each harness then surfaces those commands in its own `/` menu, or whether the agents' `model: opus` / `effort: high` is honored outside Claude Code — worst case they run on your session model, which is harmless. The skill auto-triggers either way.
 
 ## Use it
 
@@ -49,6 +56,8 @@ Verified with `apm install --target cursor`: all 12 primitives land, the skill a
 /solo-sdlc:gate                                          # phase 6 only — the QA/review gate
 /solo-sdlc:converge                                      # reconcile real code against spec + plan
 ```
+
+The `evidence` skill (browser proof for a PR: captioned MP4, storyboard PNG, state trace, ready-to-paste PR section) triggers on requests like *"record the flow"* or *"video evidence"*; `qa-ui` and phase 6 use it. It needs Node, `playwright-core` and `ffmpeg`.
 
 The `sdlc` skill also auto-triggers on things like *"take this idea to production"* or *"resume this project properly"*. A vague idea is a fine starting point — phase 0 exists to sharpen it. **No idea at all is also a fine starting point**: `find-idea` mines complaints, reviews, job ads and market shifts for a pain somebody already pays to escape, and hands you a shortlist instead of a guess.
 
@@ -70,11 +79,11 @@ The `sdlc` skill also auto-triggers on things like *"take this idea to productio
 | 3 | Architecture | ADRs + `docs/design/architecture.html` | **Stack chosen ⛔** |
 | 4 | Plan | `docs/plans/YYYY-MM-DD-*.md` + verified research + task status | **Plan approved ⛔** |
 | 5 | Execute | code on `feat/*`, one commit per task | Every task green |
-| 6 | QA / Review | PR + `docs/reviews/*` | `check-gate` exits 0 — no sign-off |
+| 6 | QA / Review | PR + `docs/reviews/*` + `docs/qa/ledger.tsv` | `check-gate` exits 0 in CI — no sign-off |
 | 7 | Release | tag + `docs/releases/*` + `docs/runbook.md` | **Human ships ⛔** |
 | 8 | Retro | `docs/retro/*` | Lessons written down |
 
-Phases scale to the work through four rigor tracks: **trivial** (skip 1–4), **feature** (skip validate), **high-risk** (architecture + security required, two review rounds), **new product** (all nine).
+Phases scale to the work through four rigor tracks: **trivial** (skip 1–4), **feature** (skip validate), **subsystem** (architecture + security required, two review rounds), **new product** (all nine). Specs, plans and the gate are checked by `scripts/sdlc/check-spec.py`, `check-plan.py` and `check-gate.py`, which `scaffold.sh` installs into your repo.
 
 There's an interactive version of this diagram in [`docs/workflow-diagram.html`](docs/workflow-diagram.html) — open it locally to click through each phase and highlight the path a given track takes.
 
@@ -93,40 +102,38 @@ None of them fixes product code — fixes go to a fresh implementer. Each writes
 
 ## Tuning models and effort
 
-The plugin is deliberately almost neutral here, and the defaults are worth understanding before you change them.
+Skills and references speak in three **tiers**, never model names: `strong` (judgment, hard-to-reverse decisions, review), `standard` (coding to a clear plan), `fast` (wide reads, summaries, commit messages). Every plan task carries `Tier:` and `Risk flags:`; money/pricing, auth/RLS, migrations, concurrency, or touching 2+ modules or a public interface force `Tier: strong` (`check-plan` fails otherwise). The model changes only at spawn or on escalation after a failure, never mid-session. Tier-to-model mapping per harness is in [`integrations.md`](skills/sdlc/references/integrations.md); on Claude Code it is `strong` = opus/high, `standard` = sonnet, `fast` = haiku.
 
-**Models.** All six agents ship as `model: opus` with `effort: high`: every one of them is a judgment call whose miss is expensive (a bad GO, a wrong stack, a missed BLOCKING finding), and the QA agents are the ones the gate trusts. Nothing is pinned to a full model ID (`claude-opus-5`) — only aliases, so the plugin doesn't rot when a new model lands.
-
-**Effort.** Every agent sets `effort: high`. [That is already the default](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level) on every model that supports effort, so it mainly pins the reviewers against a lower session level. Frontmatter effort *overrides your session level* — pinning `xhigh` here would silently spend more than someone who deliberately ran `/effort medium` asked for. `max` also carries a documented risk of overthinking.
-
-If you do want to tune it, this is where each dial lives:
+**Agents.** All six ship as `model: opus` with `effort: high`: each is a judgment call whose miss is expensive (a bad GO, a wrong stack, a missed BLOCKING finding), and the gate trusts the QA agents. Only aliases are used, never a full model ID, so the plugin doesn't rot when a new model lands. `effort: high` is [already the default](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level), so it mainly pins reviewers against a lower session level; frontmatter effort *overrides your session level*, which is why nothing here pins `xhigh`.
 
 | What you want | How |
 | --- | --- |
 | A different model for one agent | Edit `model:` in `agents/<name>.md` — alias (`opus`, `sonnet`, `haiku`, `fable`), a full model ID, or `inherit` |
 | A different model for *all* subagents | `CLAUDE_CODE_SUBAGENT_MODEL` — takes precedence over every agent file |
-| The single biggest saving | `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` before phase 5. Execution subagents are spawned by your SDD skill, not by this plugin, so no agent file reaches them — and once tasks satisfy the granularity rules (one test, one commit, 1–3 files) the extra capability buys very little |
-| Cheaper idea scans | Nothing to configure — `find-idea` already tells its scouts to run on a cheap tier where the harness allows it, and keeps clustering and scoring on the session model |
-| Deeper reasoning on the merge-blocking reviewers | Add `effort: xhigh` to `agents/tech-lead-reviewer.md` and `agents/security-reviewer.md`. Defensible: a missed BLOCKING finding costs more than the tokens |
+| The single biggest saving | Let plan tasks carry `Tier: standard`. Execution subagents are spawned per task from the plan, not by an agent file, and once tasks satisfy the granularity rules the extra capability buys little |
+| Deeper reasoning on the merge-blocking reviewers | Add `effort: xhigh` to `agents/tech-lead-reviewer.md` and `agents/security-reviewer.md` |
 | Cheaper QA passes | `model: haiku` on `qa-logic` / `qa-ui`, or add `effort: medium` |
-| One phase deeper than the rest | Set it on your session with `/effort` before that phase — a skill spanning nine phases can't carry one useful effort value |
 | Cap it globally | `CLAUDE_CODE_EFFORT_LEVEL` — takes precedence over frontmatter and the session |
 
-Rough guide to which phases actually reward depth: **1, 3, and 4** (validation, architecture, plan review) are judgment-heavy and where a bad call is expensive to unwind. **0** is split — the scouts that go and read the internet are mechanical, while clustering what they bring back and scoring it is not. **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules. **6** is judgment-heavy again, which is why its reviewers run on opus at high effort.
+Phases that reward depth: **1, 3 and 4** (validation, architecture, plan review) and **6** (review gate). **5** (execute) is mostly mechanical once the plan is good — that's the point of the task-granularity rules.
 
 ## Design decisions worth knowing about
 
 **Required sections are slots, not reminders.** `scaffold.sh` writes a template set into `docs/templates/`, and every artifact starts as a copy of one. The sections gates read — acceptance checklist, clarifications, verified research, task status, rollback — are pre-cut slots marked REQUIRED. A prose instruction to "remember the acceptance checklist" gets skipped under pressure; an empty slot in the file you're already editing does not. Numbered requirement IDs (`R1`, `R2`) exist for the same reason: they make `tech-lead-reviewer`'s requirement→task matrix mechanical instead of a judgement call.
 
-**The repo stays self-describing.** Scaffolding also writes `docs/WORKFLOW.md` (the full process, stamped with the plugin version it came from) and `AGENTS.md` (track, phase in flight, open spec and plan, real build commands). Both are for the agent that shows up without this plugin installed — including one that isn't Claude.
+**The repo stays self-describing.** Scaffolding also writes `docs/WORKFLOW.md` (a short pointer to the process, stamped with the plugin version), `AGENTS.md` (track, build commands) and `docs/status.md` (`next:` and `waiting-on-human:`). All are for the agent that shows up without this plugin installed — including one that isn't Claude. Scaffolding also installs `scripts/sdlc/check-*.py`, a CI workflow whose `gate` job runs `check-gate`, and a `.githooks/pre-push` that runs the spec and plan checks.
 
 **Task granularity is a gate, not a suggestion.** Oversized tasks are the number-one reason subagents fail. A task ships only if it has one red→green test, is committable on its own with the repo still green, can be done by a fresh-context agent from the plan plus 1–3 named files, and depends on nothing unfinished.
 
-**Task status lives in git.** Agent scratch ledgers are git-ignored and vanish. So the plan file carries `- [x] Task 3 — <name> — <commit hash>`, ticked the moment the task goes green. A ticked box with no hash counts as not done.
+**Task status lives in git.** Agent scratch ledgers are git-ignored and vanish. So the plan file carries `- [x] Task 3 — <name> — <commit hash>`, ticked the moment the task goes green, in the same commit as the code and the `docs/status.md` update. A ticked box with no resolvable hash counts as not done. There is no "one phase, one session" rule: start a new session at a task boundary around 60% context, or after ship.
 
 **The pipeline loops.** Architecture that breaks the spec goes back to the spec. A retry ceiling means the plan was wrong, not that the agent needs more attempts. Every backward step that changes a settled artifact gets an ADR.
 
 **"Brainstorm" is disambiguated.** Idea-level (phase 0), solution-level (phase 2), and technical (phase 3) are different conversations. Discussing libraries while defining requirements means you're in the wrong phase.
+
+## Optional hooks
+
+`hooks/` ships two opt-in Claude Code hooks (need `jq`; silent no-ops without it or without `docs/status.md`): **SessionStart** injects the head of `docs/status.md` as context, and **Stop** keeps the agent working while `status.md` has a real `next:` action and no B gate is open. It never traps a stop on a loose match, a missing marker, or a repeated stop. The pipeline works the same without them.
 
 ## Optional integrations
 
@@ -144,6 +151,16 @@ Everything works standalone. When these are installed, the skill and agents use 
 [GitHub Spec Kit](https://github.com/github/spec-kit) solves an adjacent problem: it standardizes spec-driven artifacts across any agent, through a CLI and command set (`specify`, `plan`, `tasks`, `clarify`, `analyze`, `checklist`, `converge`). solo-sdlc borrows several of its ideas — acceptance checklists as "unit tests for prose", clarifications committed into the spec rather than left in chat, an explicit requirement→task matrix, and reconciling real code against the spec when resuming.
 
 It deliberately does **not** wrap the Spec Kit CLI. This plugin keeps its artifacts in plain `docs/` and adds what a solo founder needs and a spec toolkit doesn't cover: business validation before the repo, adversarial review agents, an execution retry ceiling, an incident runbook, and human gates on value decisions. If you already run Spec Kit, take the agents from here and ignore the pipeline.
+
+## Upgrading from 0.2
+
+1. Re-run `skills/sdlc/scaffold.sh` in your project. It is idempotent: it adds `scripts/sdlc/`, `.githooks/pre-push`, the new templates and the CI `gate` job, and leaves existing files alone.
+2. Make `gate` a required status check in branch protection.
+3. If you kept a handoff file, migrate it to `docs/status.md`.
+4. In open specs, add `A<n>` acceptance IDs and a `Verify by` line to each; in open plans, add `Tier:` and `Risk flags:` to each task. `check-spec` and `check-plan` list what is missing.
+5. The single QA agent is now `qa-logic` plus `qa-ui`; update any local references.
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing
 
