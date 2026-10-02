@@ -27,6 +27,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      # Stack-specific lint. Replace with your linter (eslint, ruff, golangci-lint, …).
+      # - name: Lint
+      #   run: pnpm lint
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -40,6 +44,51 @@ jobs:
       # A diagram that contradicts reality means the phase 7 gate is not passed.
       # - name: Architecture diagram matches the repo
       #   run: ./scripts/check-architecture-diagram.sh
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # --- Stack-specific. Example: Playwright with a JSON report the gate can read. ---
+      # - uses: pnpm/action-setup@v4
+      # - uses: actions/setup-node@v4
+      #   with: { node-version: 22, cache: pnpm }
+      # - run: pnpm install --frozen-lockfile
+      # - run: pnpm exec playwright install --with-deps
+      # - run: pnpm exec playwright test --reporter=json > reports/playwright.json
+      #   (create reports/ first: mkdir -p reports)
+      - name: Placeholder report (delete once the real e2e step above is enabled)
+        run: mkdir -p reports && echo '{}' > reports/playwright.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: reports/
+
+  # Make `gate` a REQUIRED status check in branch protection (Settings > Branches > main), or the
+  # contract layer is advisory only.
+  gate:
+    needs: [verify, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: reports
+          path: reports/
+      - name: Contract gate
+        env:
+          # Active spec: set SPEC here to pin one; otherwise it is read from the plan named in
+          # docs/status.md (its `Feature / plan` line), then that plan's `Spec` line.
+          SPEC: ""
+        run: |
+          if [ -z "$SPEC" ]; then
+            plan=$(grep -o 'docs/plans/[^` ]*\.md' docs/status.md | head -1)
+            SPEC=$(grep -o 'docs/specs/[^` ]*\.md' "$plan" | head -1)
+          fi
+          python3 scripts/sdlc/check-gate.py --spec "$SPEC" --reports reports/playwright.json \
+            --ledger docs/qa/ledger.tsv --gates docs/gates.md --reviews docs/reviews \
+            --sha ${{ github.sha }}
 
   secrets:
     runs-on: ubuntu-latest
