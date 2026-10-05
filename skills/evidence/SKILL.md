@@ -9,7 +9,7 @@ Three artifacts that must tell the same story, plus the PR text built from them.
 
 | File | For | Built from |
 |---|---|---|
-| `<slug>.mp4` | Human watching the flow | Playwright `recordVideo`, trimmed to the first step |
+| `<slug>.mp4` | Inline video player in the PR | Playwright `recordVideo`, trimmed to the first step |
 | `<slug>.storyboard.png` | Inline image in the PR | **One screenshot per step**, taken right after that step's probe |
 | `<slug>.trace.json` | Proof of claims the eye can't check | `probe()` after every step |
 | `<slug>.captions.png` | Your own check | Caption bar of the MP4 sampled at 4 fps |
@@ -53,8 +53,13 @@ Uses installed Google Chrome (`channel: 'chrome'`). Set `EVIDENCE_CHANNEL=chromi
    - Open `<slug>.captions.png`: every caption present.
    - `ffprobe -v error -show_entries format=duration:stream=width,height -of compact <slug>.mp4`.
    - Check frames for secrets / personal data before anything leaves the machine.
-6. **Host** (ask the user before any commit/push): commit the files to a dedicated branch (never the PR's code branch), push, and use the pinned commit URL as `{BASE}`, e.g. `https://github.com/<org>/<repo>/blob/<sha>/docs/qa/evidence/<slug>`. Images render inline via `?raw=true` for repo members. Inline video players need a manual drag-drop into the PR editor; offer, don't pretend.
-7. **Fill the PR** with `<slug>.pr.md` (`{BASE}` filled), then `gh pr edit <n> --body-file <file>`. Re-read the rendered body afterwards.
+6. **Host the trace** (ask the user before any commit/push): commit `<slug>.trace.json` to a dedicated branch (never the PR's code branch), push, and use the pinned commit URL as `{BASE}`, e.g. `https://github.com/<org>/<repo>/blob/<sha>/docs/qa/evidence/<slug>`. Never host the MP4 this way: GitHub shows a repo-blob `.mp4` as a download link, not a player.
+7. **Fill the PR** from the output directory, uploading the media with GitHub CLI >= 2.102 (needs push access to the repo):
+   ```bash
+   gh pr edit <n> --body-file <slug>.pr.md --attach ./<slug>.storyboard.png --attach ./<slug>.mp4
+   ```
+   `--attach` uploads each file to `github.com/user-attachments/assets/…` (the drag-drop store, the only host GitHub renders as a video player) and swaps the matching `./<slug>.*` reference for the uploaded URL. If you adapt the section into a repo template, keep each `![](./<slug>.mp4)` alone in its own paragraph; inside a sentence or list item it renders as a link. Size cap: 10 MB per video on free plans, 100 MB on paid. Without `gh --attach`, drag-drop the MP4 into the PR editor instead; never fall back to a blob link.
+   Re-read the body (`gh pr view <n> --json body`): every video line must be a lone `https://github.com/user-attachments/assets/…` URL.
 8. **Ledger (sdlc):** reference the files from `docs/qa/ledger.tsv` evidence column (e.g. `docs/qa/evidence/a3-keyboard/a3-keyboard.storyboard.png`).
 
 ## PR evidence section
@@ -64,9 +69,10 @@ Uses installed Google Chrome (`channel: 'chrome'`). Set `EVIDENCE_CHANNEL=chromi
 ```markdown
 ## PR evidence
 
-![Storyboard: …]({BASE}/<slug>.storyboard.png?raw=true)
+![Storyboard: …](./<slug>.storyboard.png)
 
-- Recording (MP4): {BASE}/<slug>.mp4
+![](./<slug>.mp4)
+
 - State trace (JSON, read after each step): {BASE}/<slug>.trace.json
 
 | Step | Claim | Trace result | Where to see it |

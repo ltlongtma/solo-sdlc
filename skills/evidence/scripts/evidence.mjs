@@ -134,13 +134,17 @@ function prSnippet(o, trace) {
     const seen = s.traceOnly ? `trace only (${s.traceOnly})` : `frame ${i + 1}, ~${(e.t / 1000).toFixed(1)}s`;
     return `| ${i + 1} | ${s.claim} | ${result} | ${seen} |`;
   });
+  // Storyboard and MP4 stay relative: `gh pr edit --attach` uploads them to user-attachments, the only
+  // host GitHub renders as an inline image/video player. A repo blob .mp4 link only offers a download.
   return [
-    '<!-- Replace {BASE} with where the files are hosted, e.g. https://github.com/<org>/<repo>/blob/<sha>/docs/qa/evidence/<slug> -->',
+    `<!-- From this directory: gh pr edit <n> --body-file ${o.slug}.pr.md --attach ./${o.slug}.storyboard.png --attach ./${o.slug}.mp4 -->`,
+    '<!-- Replace {BASE} with where the trace is hosted, e.g. https://github.com/<org>/<repo>/blob/<sha>/docs/qa/evidence/<slug> -->',
     '## PR evidence',
     '',
-    `![Storyboard: ${trace.map((e) => e.caption.replace(/^\d+\.\s*/, '')).join(' → ')}]({BASE}/${o.slug}.storyboard.png?raw=true)`,
+    `![Storyboard: ${trace.map((e) => e.caption.replace(/^\d+\.\s*/, '')).join(' → ')}](./${o.slug}.storyboard.png)`,
     '',
-    `- Recording (MP4): {BASE}/${o.slug}.mp4`,
+    `![](./${o.slug}.mp4)`,
+    '',
     `- State trace (JSON, read after each step): {BASE}/${o.slug}.trace.json`,
     '',
     '| Step | Claim | Trace result | Where to see it |',
