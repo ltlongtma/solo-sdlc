@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `evidence`: the PR section references the storyboard and MP4 by relative path and is posted with `gh pr edit --attach`, so the recording plays inline in the PR. Repo-blob `.mp4` links only offered a download.
+
 ## 0.3.0
 
 - Artifact-first, harness-agnostic: contract (files + check scripts), instruction (router skill + per-phase references), adapter (agent frontmatter, commands, hooks).
