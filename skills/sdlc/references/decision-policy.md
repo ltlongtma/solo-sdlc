@@ -20,7 +20,7 @@ How to raise a B item:
 3. Stop only the work listed under **Blocks**. Everything else continues on the **Default**.
 4. A B item counts as answered only when **Answer** is filled; an acceptance line marked `human-B` is checked by `check-gate` against it.
 
-This is the only place in the pipeline where the AI stops and asks the human. Never walk through a B gate alone.
+This is the only place in the pipeline where the AI stops and asks the human. (The model choice in `model-tiers.md` is asked once without stopping: work continues on the suggested defaults.) Never walk through a B gate alone.
 
 Human-only work (accounts, billing, pricing, legal, grading a golden set, going live) → list it in the backlog early, and raise its B item as soon as it is known, so it never blocks you at the last minute.
 

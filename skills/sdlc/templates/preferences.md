@@ -12,7 +12,10 @@ from the next session. To change one, edit it in place.
 ## Models
 
 Your choice. The AI passes these at every spawn and never edits this table on its own. Shown: the
-plugin's suggested defaults — change any cell (alias or full model ID).
+plugin's suggested defaults — change any cell (alias or full model ID). Until `Confirmed:` is filled,
+the AI asks you once per session (without blocking work).
+
+Confirmed: <date, filled when you answer>
 
 | Tier | Used by | Model |
 |---|---|---|
