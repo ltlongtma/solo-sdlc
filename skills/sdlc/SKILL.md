@@ -12,6 +12,7 @@ A 9-phase pipeline. The AI does the work and decides most things; the human answ
 1. **Resuming a repo** → follow the resume order in [session-lifecycle.md](references/session-lifecycle.md): `AGENTS.md` → `docs/status.md` (`next:`) → `python3 scripts/sdlc/check-plan.py <plan> --list` (plan path from `docs/status.md`). Converge when it reports problems. The repo's `docs/WORKFLOW.md` wins over this skill where they disagree.
 2. **Fresh idea, no repo** → phases 0–1 in scratch; no `git init` until GO. See [phase-0-1.md](references/phase-0-1.md).
 3. **Repo without the process** → run `scaffold.sh` (idempotent), then enter at the real phase. See [phase-0-1.md](references/phase-0-1.md#scaffold).
+4. **Any repo** → if `docs/preferences.md` has no confirmed `## Models` table, ask the human once to pick models; keep working on the suggested defaults ([model-tiers.md](references/model-tiers.md#every-spawn-names-its-model--the-human-picks-it)).
 
 ## Decision policy
 
@@ -21,7 +22,7 @@ Full rules: [decision-policy.md](references/decision-policy.md).
 - **T — the AI decides** and records it in an ADR or the spec's Clarifications with `reverse with: <word>`.
 - **R — rubber-stamp approvals are removed.** No plan approval, no PR sign-off.
 
-Stop and ask the human only at a B gate.
+Stop and ask the human only at a B gate. (The one-time model question is asked without stopping.)
 
 ## Phases
 
