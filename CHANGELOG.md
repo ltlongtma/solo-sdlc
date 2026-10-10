@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2
+
+- Suggested models are exact IDs of the latest generation (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) in the tier table, the `## Models` template and agent frontmatter; the one-time model question names IDs, not aliases (`haiku` had resolved to Haiku 4.5).
+- `integrations.md`: how a full ID reaches a spawn on Claude Code (alias pinned via `ANTHROPIC_DEFAULT_*_MODEL`); the AI offers the `env` block on confirmation and writes it only if the human agrees.
+
 ## 0.3.1
 
 - Models are the human's choice: new `## Models` table in `docs/preferences.md` (scaffolded with suggested defaults); every spawn passes the model from it, so nothing inherits the session's model by accident; the AI suggests changes, never edits the table. Until the table carries `Confirmed:`, the AI asks once per session without blocking work (not a B gate). Fix-diff re-review defaults to `standard` unless the fix touches a risk flag.

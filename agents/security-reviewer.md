@@ -1,7 +1,7 @@
 ---
 name: security-reviewer
 description: Security review with an attacker's lens. Use PROACTIVELY before merge or release when a change touches auth, sessions, database schema/RLS, payments/money, file upload, user-supplied input, external URLs, or public endpoints — secret exposure, IDOR/cross-tenant access, injection, SSRF, webhook replay, dependency vulnerabilities. Also use when the user asks to "check security" or "review this for vulnerabilities".
-model: opus
+model: claude-opus-5-5
 effort: high
 disallowedTools: Edit, NotebookEdit
 ---

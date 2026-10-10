@@ -26,15 +26,26 @@ Suggested defaults — the project's `docs/preferences.md` `## Models` table ove
 
 | Tier | Suggested setting |
 |---|---|
-| `strong` | `model: opus` + `effort: high` |
-| `standard` | `model: sonnet` |
-| `fast` | `model: haiku` |
+| `strong` | `model: claude-opus-5-5` + `effort: high` |
+| `standard` | `model: claude-sonnet-5-5` |
+| `fast` | `model: claude-haiku-5-5` |
+
+Suggestions are exact model IDs of the latest generation, not aliases: an alias can resolve to an older generation (`haiku` has resolved to Haiku 4.5). A new generation is one PR bumping every ID: this table, `agents/*.md`, `templates/preferences.md`.
 
 Set it in an agent's frontmatter, or pass `model` when spawning (alias `opus`, `sonnet`, `haiku`; `inherit` = main session's model). Order: per-invocation `model` parameter, then agent frontmatter `model` (`inherit` = main conversation's model), then the `CLAUDE_CODE_SUBAGENT_MODEL` env var, then the main conversation's model (https://code.claude.com/docs/en/sub-agents). `effort` is a frontmatter field only. Because the per-invocation parameter wins over frontmatter, passing the `## Models` choice at spawn time overrides an agent's shipped default without editing the plugin.
 
-Optional, in `~/.claude/settings.json` (your call, not required):
-- Pin what an alias means: `ANTHROPIC_DEFAULT_OPUS_MODEL` / `_SONNET_MODEL` / `_HAIKU_MODEL` set to a full model ID. The spawn parameter takes aliases only, and an alias can lag a generation (`haiku` has resolved to Haiku 4.5).
-- Catch a spawn that forgot `model`: `CLAUDE_CODE_SUBAGENT_MODEL` (for example `sonnet`). It sits below frontmatter, so agents keep their model, and an unnamed spawn lands there instead of the main session's model.
+Applying a full model ID from the table: agent frontmatter takes it directly, but the per-spawn parameter takes aliases only. So pin each family's alias to the chosen ID in `~/.claude/settings.json` and spawn with the alias. When the human confirms the table, the AI offers this block filled with their IDs and writes it only if they agree:
+
+```json
+"env": {
+  "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5-5",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5-5",
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-5-5",
+  "CLAUDE_CODE_SUBAGENT_MODEL": "claude-sonnet-5-5"
+}
+```
+
+- `CLAUDE_CODE_SUBAGENT_MODEL` catches a spawn that forgot `model`. It sits below frontmatter, so agents keep their model, and an unnamed spawn lands there instead of the main session's model.
 
 ### omp
 

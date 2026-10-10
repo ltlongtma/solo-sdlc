@@ -1,7 +1,7 @@
 ---
 name: solution-architect
 description: Propose system architecture and tech stack with explicit trade-offs BEFORE planning. Use PROACTIVELY at the SDLC Architecture step for a new product or a subsystem-level change — 2-3 candidate stacks, high-level system design, draft ADRs with rationale and trade-offs, operating-cost fit for a solo founder. Also use when the user says "let's talk architecture", "pick the stack", "design the system".
-model: opus
+model: claude-opus-5-5
 effort: high
 disallowedTools: Edit, NotebookEdit
 ---

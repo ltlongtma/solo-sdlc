@@ -1,7 +1,7 @@
 ---
 name: product-critic
 description: Adversarial business validation of a product or feature idea BEFORE any build effort is committed. Use PROACTIVELY at the SDLC Validate gate for a new product or a big bet — market demand, competitors, pricing, unit economics, operating cost, ROI, distribution channel, risks and failure modes. Also use when the user says "critique this idea", "validate my idea", "is this worth building", "research this market".
-model: opus
+model: claude-opus-5-5
 effort: high
 disallowedTools: Edit, NotebookEdit
 ---

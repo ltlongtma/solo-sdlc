@@ -19,8 +19,8 @@ Confirmed: <date, filled when you answer>
 
 | Tier | Used by | Model |
 |---|---|---|
-| strong | product-critic, solution-architect, tech-lead-reviewer, qa-logic, qa-ui, security-reviewer; `Tier: strong` tasks | opus |
-| standard | `Tier: standard` tasks; re-review of a fix diff without risk flags | sonnet |
-| fast | lookups, log summaries, release notes, commit messages | haiku |
+| strong | product-critic, solution-architect, tech-lead-reviewer, qa-logic, qa-ui, security-reviewer; `Tier: strong` tasks | claude-opus-5-5 |
+| standard | `Tier: standard` tasks; re-review of a fix diff without risk flags | claude-sonnet-5-5 |
+| fast | lookups, log summaries, release notes, commit messages | claude-haiku-5-5 |
 
-Per-role override (optional): <e.g. qa-ui: sonnet>
+Per-role override (optional): <e.g. qa-ui: claude-sonnet-5-5>
