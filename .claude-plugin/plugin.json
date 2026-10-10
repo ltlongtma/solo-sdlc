@@ -1,7 +1,7 @@
 {
   "name": "solo-sdlc",
   "description": "A gated 9-phase SDLC for a solo founder shipping with AI: idea → validate → spec → architecture → plan → execute → QA → release → retro. Ships three skills (idea finder, pipeline, browser evidence), six adversarial review agents, and a machine gate: check-gate exit 0, not a sign-off.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": {
     "name": "Long Luu"
   },

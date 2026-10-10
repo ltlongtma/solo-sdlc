@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- The one-time model question uses the harness's structured-choice prompt (Claude Code: `AskUserQuestion`) with the suggested table, a stronger and a cheaper variant, and free text; it rides along with another question or comes at the end of a finished turn, so it never stops work. An answer to another question does not count as confirming models.
+
 ## 0.3.2
 
 - Suggested models are exact IDs of the latest generation (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) in the tier table, the `## Models` template and agent frontmatter; the one-time model question names IDs, not aliases (`haiku` had resolved to Haiku 4.5).
