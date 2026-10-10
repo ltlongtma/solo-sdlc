@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Models are the human's choice: new `## Models` table in `docs/preferences.md` (scaffolded with suggested defaults); every spawn passes the model from it, so nothing inherits the session's model by accident; the AI suggests changes, never edits the table. Fix-diff re-review defaults to `standard` unless the fix touches a risk flag.
+- `integrations.md`: optional `env` for pinning aliases to full IDs and a `CLAUDE_CODE_SUBAGENT_MODEL` fallback. README: that variable sits below frontmatter (Claude Code ≥ 2.1.251), not above it.
 - `evidence`: the PR section references the storyboard and MP4 by relative path and is posted with `gh pr edit --attach`, so the recording plays inline in the PR. Repo-blob `.mp4` links only offered a download.
 
 ## 0.3.0

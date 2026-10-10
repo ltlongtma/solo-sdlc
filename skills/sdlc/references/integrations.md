@@ -22,13 +22,19 @@ Never required. If a skill is absent, use the fallback and carry on.
 
 ### Claude Code
 
-| Tier | Setting |
+Suggested defaults — the project's `docs/preferences.md` `## Models` table overrides them:
+
+| Tier | Suggested setting |
 |---|---|
 | `strong` | `model: opus` + `effort: high` |
 | `standard` | `model: sonnet` |
 | `fast` | `model: haiku` |
 
-Set it in an agent's frontmatter, or pass `model` when spawning (alias `opus`, `sonnet`, `haiku`; `inherit` = main session's model). Order: per-invocation `model` parameter, then agent frontmatter `model` (`inherit` = main conversation's model), then the `CLAUDE_CODE_SUBAGENT_MODEL` env var, then the main conversation's model (https://code.claude.com/docs/en/sub-agents). `effort` is a frontmatter field only.
+Set it in an agent's frontmatter, or pass `model` when spawning (alias `opus`, `sonnet`, `haiku`; `inherit` = main session's model). Order: per-invocation `model` parameter, then agent frontmatter `model` (`inherit` = main conversation's model), then the `CLAUDE_CODE_SUBAGENT_MODEL` env var, then the main conversation's model (https://code.claude.com/docs/en/sub-agents). `effort` is a frontmatter field only. Because the per-invocation parameter wins over frontmatter, passing the `## Models` choice at spawn time overrides an agent's shipped default without editing the plugin.
+
+Optional, in `~/.claude/settings.json` (your call, not required):
+- Pin what an alias means: `ANTHROPIC_DEFAULT_OPUS_MODEL` / `_SONNET_MODEL` / `_HAIKU_MODEL` set to a full model ID. The spawn parameter takes aliases only, and an alias can lag a generation (`haiku` has resolved to Haiku 4.5).
+- Catch a spawn that forgot `model`: `CLAUDE_CODE_SUBAGENT_MODEL` (for example `sonnet`). It sits below frontmatter, so agents keep their model, and an unnamed spawn lands there instead of the main session's model.
 
 ### omp
 
@@ -53,7 +59,7 @@ Implementer spawns use `"@sdlc-standard"`; quick lookups use `"@sdlc-fast"`.
 
 ### Other harnesses
 
-Put the provider's model id for each tier in the project's `docs/preferences.md` (for example `strong: <id>`), and spawn with it.
+Put the provider's model id for each tier in the `## Models` table of the project's `docs/preferences.md`, and spawn with it.
 
 ## Claude Code adapter (optional hooks)
 
