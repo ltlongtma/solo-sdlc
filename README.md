@@ -104,12 +104,13 @@ None of them fixes product code — fixes go to a fresh implementer. Each writes
 
 Skills and references speak in three **tiers**, never model names: `strong` (judgment, hard-to-reverse decisions, review), `standard` (coding to a clear plan), `fast` (wide reads, summaries, commit messages). Every plan task carries `Tier:` and `Risk flags:`; money/pricing, auth/RLS, migrations, concurrency, or touching 2+ modules or a public interface force `Tier: strong` (`check-plan` fails otherwise). The model changes only at spawn or on escalation after a failure, never mid-session. Tier-to-model mapping per harness is in [`integrations.md`](skills/sdlc/references/integrations.md); on Claude Code it is `strong` = opus/high, `standard` = sonnet, `fast` = haiku.
 
-**Agents.** All six ship as `model: opus` with `effort: high`: each is a judgment call whose miss is expensive (a bad GO, a wrong stack, a missed BLOCKING finding), and the gate trusts the QA agents. Only aliases are used, never a full model ID, so the plugin doesn't rot when a new model lands. `effort: high` is [already the default](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level), so it mainly pins reviewers against a lower session level; frontmatter effort *overrides your session level*, which is why nothing here pins `xhigh`.
+**Agents.** All six ship as `model: opus` with `effort: high` as a suggested default — your `## Models` table overrides it: each is a judgment call whose miss is expensive (a bad GO, a wrong stack, a missed BLOCKING finding), and the gate trusts the QA agents. Only aliases are used, never a full model ID, so the plugin doesn't rot when a new model lands. `effort: high` is [already the default](https://docs.claude.com/en/docs/claude-code/model-config#adjust-effort-level), so it mainly pins reviewers against a lower session level; frontmatter effort *overrides your session level*, which is why nothing here pins `xhigh`.
 
 | What you want | How |
 | --- | --- |
+| Choose models for a project | Edit `## Models` in `docs/preferences.md` (scaffolded with the suggested defaults); the AI passes them at every spawn |
 | A different model for one agent | Edit `model:` in `agents/<name>.md` — alias (`opus`, `sonnet`, `haiku`, `fable`), a full model ID, or `inherit` |
-| A different model for *all* subagents | `CLAUDE_CODE_SUBAGENT_MODEL` — takes precedence over every agent file |
+| A model for subagents that name none | `CLAUDE_CODE_SUBAGENT_MODEL` — below the spawn parameter and agent frontmatter (Claude Code ≥ 2.1.251) |
 | The single biggest saving | Let plan tasks carry `Tier: standard`. Execution subagents are spawned per task from the plan, not by an agent file, and once tasks satisfy the granularity rules the extra capability buys little |
 | Deeper reasoning on the merge-blocking reviewers | Add `effort: xhigh` to `agents/tech-lead-reviewer.md` and `agents/security-reviewer.md` |
 | Cheaper QA passes | `model: haiku` on `qa-logic` / `qa-ui`, or add `effort: medium` |

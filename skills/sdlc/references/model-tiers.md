@@ -35,6 +35,13 @@ Only at two moments:
 
 The main session never switches model mid-conversation.
 
+## Every spawn names its model — the human picks it
+
+The plugin suggests; the human decides. The model for each tier (and any per-role override) lives in the `## Models` table of the project's `docs/preferences.md`. Empty or missing → use the suggested defaults in `integrations.md` and say so once.
+- Every spawn passes the model from that table explicitly. A subagent never inherits the main session's model by accident — that model is whatever the human last picked for chatting, not a tier decision.
+- Re-reviewing a fix diff uses the `standard` row unless the fix touches a risk flag above, then `strong`.
+- The AI never edits the `## Models` table on its own. It may suggest a change (with evidence, e.g. findings lost or cost per gate) and waits for the human.
+
 ## Phase 5
 
 When superpowers `subagent-driven-development` is present, follow its "Model Selection" section together with the task's `Tier:` field. Do not restate its rules here.
