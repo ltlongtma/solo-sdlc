@@ -1,7 +1,7 @@
 ---
 name: tech-lead-reviewer
 description: Adversarial technical review of plans and code with a tech-lead lens. Use PROACTIVELY before a plan passes its gate and before a PR merges — hidden assumptions, task-ordering bugs, interface mismatches, oversized tasks, YAGNI, spec coverage, risky migrations. Also use when the user asks for a plan review or a "tech lead style" code review.
-model: opus
+model: claude-opus-5-5
 effort: high
 disallowedTools: Edit, NotebookEdit
 ---

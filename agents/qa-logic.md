@@ -1,7 +1,7 @@
 ---
 name: qa-logic
 description: "Acceptance tests first, then break-it QA on logic. Use PROACTIVELY at the start of plan/execute — writes one failing-by-design acceptance test per spec A-id (test.fixme, titled [A<n>]) BEFORE any implementation. Use again after execution — runs the full suite and build, attacks business rules, money math, multi-screen flows, edge cases (empty/huge/unicode/non-ASCII text), error paths, cross-account access, idempotency/replay. Also use when the user says \"write the acceptance tests\", \"try to break it\", or \"QA this feature\"."
-model: opus
+model: claude-opus-5-5
 effort: high
 disallowedTools: Edit, NotebookEdit
 ---

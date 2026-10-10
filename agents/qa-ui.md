@@ -1,7 +1,7 @@
 ---
 name: qa-ui
 description: "Live-browser UI QA at the phase 6 gate. Use PROACTIVELY after execution completes on any UI spec — drives a real browser with Playwright at 360 and 1440 px, compares every screen and state against the mockup in the spec's UI states table, runs axe accessibility checks, treats any console error as FAIL, checks loading/empty/error states, and appends evidence rows to docs/qa/ledger.tsv at the current commit. Also use when the user says \"check the UI\", \"does it match the design\", or \"QA the screens\"."
-model: opus
+model: claude-opus-5-5
 effort: high
 disallowedTools: Edit, NotebookEdit
 ---
