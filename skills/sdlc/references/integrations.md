@@ -22,6 +22,8 @@ Never required. If a skill is absent, use the fallback and carry on.
 
 ### Claude Code
 
+Structured-choice prompt: the `AskUserQuestion` tool (several questions per call, so the model question rides along with any other question).
+
 Suggested defaults — the project's `docs/preferences.md` `## Models` table overrides them:
 
 | Tier | Suggested setting |
